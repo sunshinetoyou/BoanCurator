@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from api.v1.api import api_router
+from db.connection import init_db
 
 logging.basicConfig(
     level=logging.INFO,
@@ -11,6 +12,11 @@ logging.basicConfig(
 )
 
 app = FastAPI(title="News-Reader API")
+
+
+@app.on_event("startup")
+def on_startup():
+    init_db()
 
 origins = [
     "http://news.danyeon.cloud",
