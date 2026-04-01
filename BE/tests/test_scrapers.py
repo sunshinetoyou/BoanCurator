@@ -30,11 +30,11 @@ def test_scraper(scraper, max_articles=3):
     print(f"  [OK] {len(articles)} articles (showing top {min(max_articles, len(articles))})\n")
 
     for i, a in enumerate(articles[:max_articles]):
-        img_count = len(a.image_paths) if a.image_paths else 0
+        img_count = len(a.image_urls) if a.image_urls else 0
         print(f"  [{i+1}] {a.title[:60]}")
         print(f"      source={a.source} | content={len(a.content)} chars | images={img_count}")
-        if a.image_paths:
-            for p in a.image_paths[:3]:
+        if a.image_urls:
+            for p in a.image_urls[:3]:
                 print(f"        IMG: {p}")
         print(f"      published_at={a.published_at}")
         print()

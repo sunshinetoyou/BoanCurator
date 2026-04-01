@@ -1,0 +1,7 @@
+BE/.env
+BE/.venv/
+BE/chroma_data/
+BE/postgres_data/
+BE/images_data/
+
+__pycache__/

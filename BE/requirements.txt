@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+sqlmodel
+psycopg2-binary
+feedparser
+beautifulsoup4
+requests
+pydantic-settings
+google-genai
+chromadb
+python-dateutil
+python-jose[cryptography]

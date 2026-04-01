@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:projectzero.google)",
+      "WebFetch(domain:ufo.stealien.com)",
+      "WebFetch(domain:asec.ahnlab.com)",
+      "WebFetch(domain:feeds.feedburner.com)",
+      "WebFetch(domain:www.darkreading.com)",
+      "WebFetch(domain:www.bleepingcomputer.com)",
+      "WebFetch(domain:krebsonsecurity.com)",
+      "WebFetch(domain:thehackernews.com)",
+      "WebFetch(domain:www.dailysecu.com)",
+      "WebFetch(domain:www.securityweek.com)",
+      "Bash(.venv/Scripts/python tests/test_scrapers.py BoanNews)",
+      "Bash(.venv/Scripts/python tests/test_scrapers.py GeekNews)",
+      "Bash(.venv/Scripts/python -c \":*)",
+      "Bash(.venv/Scripts/python tests/test_scrapers.py S2W)",
+      "Bash(.venv/Scripts/python tests/test_scrapers.py Krebs)",
+      "Bash(.venv/Scripts/python tests/test_rss_scrapers.py \"Unit 42\")",
+      "Bash(.venv/Scripts/python tests/test_rss_scrapers.py Mandiant)"
+    ]
+  }
+}

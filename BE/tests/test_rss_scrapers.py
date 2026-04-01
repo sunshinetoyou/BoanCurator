@@ -50,7 +50,7 @@ def test_one(cfg, max_articles=2):
 
     print(f"  [OK] {len(articles)} articles\n")
     for i, a in enumerate(articles[:max_articles]):
-        img_count = len(a.image_paths) if a.image_paths else 0
+        img_count = len(a.image_urls) if a.image_urls else 0
         print(f"  [{i+1}] {a.title[:70]}")
         print(f"      content={len(a.content)} chars | images={img_count} | date={a.published_at}")
         if a.content:
