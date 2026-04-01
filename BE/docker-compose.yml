@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:15
-    container_name: security_db
+    image: postgres:17
+    container_name: boan_db
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -11,9 +11,9 @@ services:
       timeout: 5s
       retries: 5
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: security_curator
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PW}
+      POSTGRES_DB: bc_db
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
     ports:
@@ -22,7 +22,7 @@ services:
   # FastAPI 서버 (조회 + 검색 + 추천)
   api:
     build: .
-    container_name: security_api
+    container_name: boan_api
     command: uvicorn api.main:app --host 0.0.0.0 --port 11278
     ports:
       - "11278:11278"
@@ -30,7 +30,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/security_curator
+      DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PW}@db:5432/bc_db
       GEMINI_API_KEY: ${GEMINI_API_KEY}
     volumes:
       - chroma_data:/app/chroma_data
@@ -38,24 +38,24 @@ services:
   # Scraper Worker (수집 전용)
   scraper_worker:
     build: .
-    container_name: security_scraper
+    container_name: boan_scraper
     command: python -m workers.new_scraper_bot
     depends_on:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/security_curator
+      DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PW}@db:5432/bc_db
 
   # Analysis Worker (분석 + 멀티모달 임베딩)
   analysis_worker:
     build: .
-    container_name: security_analyzer
+    container_name: boan_analyzer
     command: python -m workers.analysis_bot
     depends_on:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/security_curator
+      DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PW}@db:5432/bc_db
       GEMINI_API_KEY: ${GEMINI_API_KEY}
     volumes:
       - chroma_data:/app/chroma_data
