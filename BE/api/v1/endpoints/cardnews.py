@@ -33,7 +33,6 @@ def get_available_years(session: Session = Depends(get_session)):
     stmt = (
         select(distinct(extract("year", Article.published_at).cast(int)))
         .where(Article.published_at.is_not(None))
-        .order_by(extract("year", Article.published_at).cast(int).desc())
+        .order_by(extract("year", Article.published_at).desc())
     )
-    results = session.exec(stmt).all()
-    return [int(y) for y in results if y is not None]
+    return list(session.exec(stmt).all())
