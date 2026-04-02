@@ -20,9 +20,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.boancurator.app.navigation.Screen
-import com.boancurator.app.ui.theme.Cyan
 import com.boancurator.app.ui.theme.DarkBackground
 import com.boancurator.app.ui.theme.DarkSurface
+import com.boancurator.app.ui.theme.NeonGreen
 import com.boancurator.app.ui.theme.TextMuted
 import com.boancurator.app.ui.theme.TextSecondary
 
@@ -70,8 +70,8 @@ fun BottomNavBar(navController: NavController) {
                 },
                 label = { Text(item.label) },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Cyan,
-                    selectedTextColor = Cyan,
+                    selectedIconColor = NeonGreen,
+                    selectedTextColor = NeonGreen,
                     unselectedIconColor = TextMuted,
                     unselectedTextColor = TextMuted,
                     indicatorColor = DarkBackground

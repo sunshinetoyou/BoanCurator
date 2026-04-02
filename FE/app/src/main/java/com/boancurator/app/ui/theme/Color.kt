@@ -3,32 +3,31 @@ package com.boancurator.app.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // Background
-val DarkBackground = Color(0xFF0D1117)
-val DarkSurface = Color(0xFF161B22)
-val DarkCard = Color(0xFF1C2333)
-val DarkCardBorder = Color(0xFF2D3748)
+val DarkBackground = Color(0xFF0A0E12)
+val DarkSurface = Color(0xFF111820)
+val DarkCard = Color(0xFF141C25)
+val DarkCardBorder = Color(0xFF1E2A35)
 
-// Accent
-val Cyan = Color(0xFF00D4FF)
-val CyanDark = Color(0xFF00A3CC)
-val NeonBlue = Color(0xFF7B61FF)
-val NeonBlueDark = Color(0xFF5A3FD6)
+// Accent — Neon Green (Hacker)
+val NeonGreen = Color(0xFF00FF41)
+val NeonGreenDim = Color(0xFF00CC34)
+val Emerald = Color(0xFF00D98B)
 
 // Level badges
-val LevelBeginner = Color(0xFF00D4FF)
-val LevelIntermediate = Color(0xFF7B61FF)
-val LevelAdvanced = Color(0xFFFF6B6B)
+val LevelBeginner = Color(0xFF00FF41)
+val LevelIntermediate = Color(0xFFFFB800)
+val LevelAdvanced = Color(0xFFFF3D3D)
 
 // Text
-val TextPrimary = Color(0xFFE6EDF3)
-val TextSecondary = Color(0xFF8B949E)
-val TextMuted = Color(0xFF6E7681)
+val TextPrimary = Color(0xFFE0F2E9)
+val TextSecondary = Color(0xFF8FA89A)
+val TextMuted = Color(0xFF5A6E63)
 
 // Status
-val Success = Color(0xFF3FB950)
-val Warning = Color(0xFFD29922)
-val Error = Color(0xFFF85149)
+val Success = Color(0xFF00FF41)
+val Warning = Color(0xFFFFB800)
+val Error = Color(0xFFFF3D3D)
 
-// Category chip
-val ChipSelected = Color(0xFF1A3A4A)
-val ChipUnselected = Color(0xFF21262D)
+// Chip
+val ChipSelected = Color(0xFF0D2818)
+val ChipUnselected = Color(0xFF151E28)

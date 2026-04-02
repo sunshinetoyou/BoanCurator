@@ -51,7 +51,7 @@ import coil3.compose.AsyncImage
 import com.boancurator.app.BuildConfig
 import com.boancurator.app.data.model.CardView
 import com.boancurator.app.ui.components.LevelBadge
-import com.boancurator.app.ui.theme.Cyan
+import com.boancurator.app.ui.theme.NeonGreen
 import com.boancurator.app.ui.theme.DarkBackground
 import com.boancurator.app.ui.theme.DarkCard
 import com.boancurator.app.ui.theme.DarkSurface
@@ -97,20 +97,11 @@ fun ProfileScreen(
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
         item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "프로필",
-                    color = TextPrimary,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                if (uiState.isLoggedIn) {
+            if (uiState.isLoggedIn) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
                     IconButton(onClick = { viewModel.logout() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.Logout,
@@ -119,6 +110,8 @@ fun ProfileScreen(
                         )
                     }
                 }
+            } else {
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
 
@@ -142,7 +135,7 @@ fun ProfileScreen(
                                 modifier = Modifier
                                     .size(56.dp)
                                     .clip(CircleShape)
-                                    .border(2.dp, Cyan.copy(alpha = 0.3f), CircleShape)
+                                    .border(2.dp, NeonGreen.copy(alpha = 0.3f), CircleShape)
                             )
                         } else {
                             Box(
@@ -150,7 +143,7 @@ fun ProfileScreen(
                                     .size(56.dp)
                                     .clip(CircleShape)
                                     .background(DarkSurface)
-                                    .border(2.dp, Cyan.copy(alpha = 0.3f), CircleShape),
+                                    .border(2.dp, NeonGreen.copy(alpha = 0.3f), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -194,7 +187,7 @@ fun ProfileScreen(
                         Icon(
                             Icons.Filled.Shield,
                             contentDescription = null,
-                            tint = Cyan,
+                            tint = NeonGreen,
                             modifier = Modifier.size(48.dp)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
@@ -215,14 +208,14 @@ fun ProfileScreen(
 
                         if (uiState.isLoading) {
                             CircularProgressIndicator(
-                                color = Cyan,
+                                color = NeonGreen,
                                 modifier = Modifier.size(32.dp)
                             )
                         } else {
                             Button(
                                 onClick = onGoogleSignIn,
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Cyan,
+                                    containerColor = NeonGreen,
                                     contentColor = DarkBackground
                                 ),
                                 shape = RoundedCornerShape(12.dp),

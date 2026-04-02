@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boancurator.app.ui.components.ArticleCard
-import com.boancurator.app.ui.theme.Cyan
+import com.boancurator.app.ui.theme.NeonGreen
 import com.boancurator.app.ui.theme.DarkBackground
 import com.boancurator.app.ui.theme.TextMuted
 import com.boancurator.app.ui.theme.TextPrimary
@@ -47,13 +47,7 @@ fun BookmarksScreen(
             .fillMaxSize()
             .background(DarkBackground)
     ) {
-        Text(
-            text = "북마크",
-            color = TextPrimary,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
-        )
+        Spacer(modifier = Modifier.height(8.dp))
 
         when {
             !uiState.isLoggedIn -> {
@@ -70,7 +64,7 @@ fun BookmarksScreen(
 
             uiState.isLoading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Cyan, modifier = Modifier.size(32.dp))
+                    CircularProgressIndicator(color = NeonGreen, modifier = Modifier.size(32.dp))
                 }
             }
 

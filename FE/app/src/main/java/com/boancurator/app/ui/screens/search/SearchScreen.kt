@@ -47,7 +47,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boancurator.app.data.model.CardView
 import com.boancurator.app.ui.components.ArticleCard
-import com.boancurator.app.ui.theme.Cyan
+import com.boancurator.app.ui.theme.NeonGreen
 import com.boancurator.app.ui.theme.DarkBackground
 import com.boancurator.app.ui.theme.DarkCard
 import com.boancurator.app.ui.theme.TextMuted
@@ -67,13 +67,7 @@ fun SearchScreen(
             .fillMaxSize()
             .background(DarkBackground)
     ) {
-        Text(
-            text = "검색",
-            color = TextPrimary,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
-        )
+        Spacer(modifier = Modifier.height(8.dp))
 
         val tabs = listOf("AI 검색", "테마 검색")
         val selectedTab = if (uiState.searchMode == SearchMode.SEMANTIC) 0 else 1
@@ -81,11 +75,11 @@ fun SearchScreen(
         TabRow(
             selectedTabIndex = selectedTab,
             containerColor = DarkBackground,
-            contentColor = Cyan,
+            contentColor = NeonGreen,
             indicator = { tabPositions ->
                 TabRowDefaults.SecondaryIndicator(
                     modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                    color = Cyan
+                    color = NeonGreen
                 )
             },
             divider = {}
@@ -98,7 +92,7 @@ fun SearchScreen(
                             if (index == 0) SearchMode.SEMANTIC else SearchMode.THEME
                         )
                     },
-                    text = { Text(title, color = if (selectedTab == index) Cyan else TextMuted) }
+                    text = { Text(title, color = if (selectedTab == index) NeonGreen else TextMuted) }
                 )
             }
         }
@@ -117,7 +111,7 @@ fun SearchScreen(
                         unfocusedContainerColor = DarkCard,
                         focusedTextColor = TextPrimary,
                         unfocusedTextColor = TextPrimary,
-                        cursorColor = Cyan,
+                        cursorColor = NeonGreen,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent
                     ),
@@ -142,13 +136,13 @@ fun SearchScreen(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
-                                .background(if (isSelected) Cyan.copy(alpha = 0.15f) else DarkCard)
+                                .background(if (isSelected) NeonGreen.copy(alpha = 0.15f) else DarkCard)
                                 .clickable { viewModel.onThemeSelected(theme) }
                                 .padding(horizontal = 14.dp, vertical = 8.dp)
                         ) {
                             Text(
                                 text = theme,
-                                color = if (isSelected) Cyan else TextSecondary,
+                                color = if (isSelected) NeonGreen else TextSecondary,
                                 fontSize = 13.sp,
                                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                             )
@@ -170,7 +164,7 @@ private fun SearchResults(
     when {
         uiState.isLoading -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Cyan, modifier = Modifier.size(32.dp))
+                CircularProgressIndicator(color = NeonGreen, modifier = Modifier.size(32.dp))
             }
         }
 

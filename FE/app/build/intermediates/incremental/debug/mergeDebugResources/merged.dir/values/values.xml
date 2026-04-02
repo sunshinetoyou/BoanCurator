@@ -259,9 +259,9 @@
     </style>
     <style name="TextAppearance.Compat.Notification.Title" parent="@android:style/TextAppearance.StatusBar.EventContent.Title"/>
     <style name="Theme.BoanCurator" parent="android:Theme.Material.NoActionBar">
-        <item name="android:statusBarColor">#FF0D1117</item>
-        <item name="android:navigationBarColor">#FF0D1117</item>
-        <item name="android:windowBackground">#FF0D1117</item>
+        <item name="android:statusBarColor">#FF0A0E12</item>
+        <item name="android:navigationBarColor">#FF0A0E12</item>
+        <item name="android:windowBackground">#FF0A0E12</item>
     </style>
     <style name="Theme.Hidden" parent="@android:style/Theme.DeviceDefault">
         <item name="android:windowTranslucentStatus">true</item>

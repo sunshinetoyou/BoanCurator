@@ -1,6 +1,7 @@
 package com.boancurator.app.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,10 +28,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.boancurator.app.data.model.ApiCategory
 import com.boancurator.app.data.model.CardView
+import com.boancurator.app.ui.screens.home.getSecurityField
 import com.boancurator.app.ui.theme.DarkCard
+import com.boancurator.app.ui.theme.DarkCardBorder
 import com.boancurator.app.ui.theme.DarkSurface
+import com.boancurator.app.ui.theme.NeonGreen
 import com.boancurator.app.ui.theme.TextMuted
 import com.boancurator.app.ui.theme.TextPrimary
 import com.boancurator.app.ui.theme.TextSecondary
@@ -45,8 +48,9 @@ fun ArticleCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
+            .clickable(onClick = onClick)
+            .border(0.5.dp, NeonGreen.copy(alpha = 0.08f), RoundedCornerShape(14.dp)),
+        shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = DarkCard)
     ) {
         Column {
@@ -58,42 +62,25 @@ fun ArticleCard(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(16f / 9f)
-                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                        .aspectRatio(2f)
+                        .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
                         .background(DarkSurface)
                 )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp)
-                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                        .background(DarkSurface),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = article.source.uppercase(),
-                        color = TextMuted,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 2.sp
-                    )
-                }
             }
 
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(14.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     LevelBadge(level = article.level)
-                    if (article.category != null) {
-                        Text(
-                            text = ApiCategory.toKorean(article.category),
-                            color = TextMuted,
-                            fontSize = 12.sp
-                        )
-                    }
+                    val field = getSecurityField(article.themes)
+                    Text(
+                        text = field,
+                        color = if (field == "ETC") TextMuted else NeonGreen.copy(alpha = 0.6f),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -101,9 +88,9 @@ fun ArticleCard(
                 Text(
                     text = article.title,
                     color = TextPrimary,
-                    fontSize = 17.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
-                    lineHeight = 24.sp,
+                    lineHeight = 22.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -113,34 +100,22 @@ fun ArticleCard(
                     Text(
                         text = article.summary,
                         color = TextSecondary,
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp,
-                        maxLines = 3,
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                if (!article.themes.isNullOrEmpty()) {
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        article.themes.take(4).forEach { theme ->
-                            ThemeTag(theme = theme)
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
+                Spacer(modifier = Modifier.height(10.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = article.source, color = TextMuted, fontSize = 12.sp)
-                    Text(text = formatDate(article.publishedAt), color = TextMuted, fontSize = 12.sp)
+                    Text(text = article.source, color = NeonGreen.copy(alpha = 0.5f), fontSize = 11.sp)
+                    Text(text = formatDate(article.publishedAt), color = TextMuted, fontSize = 11.sp)
                 }
             }
         }

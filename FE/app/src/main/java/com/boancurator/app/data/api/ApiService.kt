@@ -25,6 +25,9 @@ interface ApiService {
         @Query("limit") limit: Int = 20
     ): PaginatedResponse
 
+    @GET("v1/cardnews/years")
+    suspend fun getAvailableYears(): List<Int>
+
     // --- Themes ---
 
     @GET("v1/themes")

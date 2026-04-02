@@ -11,10 +11,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.boancurator.app.ui.theme.ChipSelected
 import com.boancurator.app.ui.theme.ChipUnselected
-import com.boancurator.app.ui.theme.Cyan
 import com.boancurator.app.ui.theme.DarkCardBorder
+import com.boancurator.app.ui.theme.NeonGreen
 import com.boancurator.app.ui.theme.TextMuted
 
 @Composable
@@ -34,16 +35,16 @@ fun LabeledFilterChipRow(
         FilterChip(
             selected = selectedItem == null,
             onClick = { onItemSelected(null) },
-            label = { Text("전체") },
+            label = { Text("ALL", fontSize = 12.sp) },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = ChipSelected,
-                selectedLabelColor = Cyan,
+                selectedLabelColor = NeonGreen,
                 containerColor = ChipUnselected,
                 labelColor = TextMuted
             ),
             border = FilterChipDefaults.filterChipBorder(
                 borderColor = DarkCardBorder,
-                selectedBorderColor = Cyan.copy(alpha = 0.3f),
+                selectedBorderColor = NeonGreen.copy(alpha = 0.4f),
                 enabled = true,
                 selected = selectedItem == null
             )
@@ -53,16 +54,16 @@ fun LabeledFilterChipRow(
             FilterChip(
                 selected = selectedItem == item,
                 onClick = { onItemSelected(item) },
-                label = { Text(labelMapper(item)) },
+                label = { Text(labelMapper(item), fontSize = 12.sp) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = ChipSelected,
-                    selectedLabelColor = Cyan,
+                    selectedLabelColor = NeonGreen,
                     containerColor = ChipUnselected,
                     labelColor = TextMuted
                 ),
                 border = FilterChipDefaults.filterChipBorder(
                     borderColor = DarkCardBorder,
-                    selectedBorderColor = Cyan.copy(alpha = 0.3f),
+                    selectedBorderColor = NeonGreen.copy(alpha = 0.4f),
                     enabled = true,
                     selected = selectedItem == item
                 )
