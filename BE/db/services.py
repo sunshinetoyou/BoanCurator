@@ -316,6 +316,7 @@ def get_user_bookmarks(
             Bookmark.id.label("bookmark_id"),
             Article.id.label("article_id"),
             Article.source, Article.url, Article.title,
+            Article.published_at, Article.image_urls,
             Analysis.summary, Analysis.themes, Analysis.level, Analysis.category,
             Analysis.domain_scores,
             Bookmark.created_at.label("bookmarked_at"),

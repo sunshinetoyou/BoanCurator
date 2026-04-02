@@ -1,4 +1,5 @@
 import logging
+import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -33,12 +34,13 @@ app.add_middleware(
     max_age=100,
 )
 
-BUILD_VERSION = "2026-04-02"
+BUILD_TAG = os.getenv("BUILD_TAG", "local")[:7]
+BUILD_TIME = os.getenv("BUILD_TIME", "unknown")
 
 
 @app.get("/health")
 def health():
-    return {"version": BUILD_VERSION, "status": "ok"}
+    return {"status": "ok", "tag": BUILD_TAG, "built_at": BUILD_TIME}
 
 
 app.include_router(api_router, prefix="/v1")
