@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "com.boancurator.app-debug-68:/mipmap-hdpi_ic_launcher.xml.flat",
+        "source": "com.boancurator.app-main-70:/mipmap-hdpi/ic_launcher.xml"
+    },
+    {
+        "merged": "com.boancurator.app-debug-68:/mipmap-xxhdpi_ic_launcher.xml.flat",
+        "source": "com.boancurator.app-main-70:/mipmap-xxhdpi/ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\yeonsu\\.gradle\\daemon\\8.11.1\\com.boancurator.app-debug-68:\\drawable_ic_launcher_foreground.xml.flat",
+        "source": "C:\\Users\\yeonsu\\.gradle\\daemon\\8.11.1\\com.boancurator.app-main-70:\\drawable\\ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.boancurator.app-debug-68:/mipmap-xhdpi_ic_launcher.xml.flat",
+        "source": "com.boancurator.app-main-70:/mipmap-xhdpi/ic_launcher.xml"
+    },
+    {
+        "merged": "com.boancurator.app-debug-68:/mipmap-mdpi_ic_launcher.xml.flat",
+        "source": "com.boancurator.app-main-70:/mipmap-mdpi/ic_launcher.xml"
+    },
+    {
+        "merged": "com.boancurator.app-debug-68:/mipmap-xxxhdpi_ic_launcher.xml.flat",
+        "source": "com.boancurator.app-main-70:/mipmap-xxxhdpi/ic_launcher.xml"
+    }
+]

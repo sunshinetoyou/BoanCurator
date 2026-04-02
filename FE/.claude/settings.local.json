@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://bc-api.danyeon.cloud/v1/themes\")",
+      "Bash(D:/Android/Sdk/platform-tools/adb.exe logcat:*)",
+      "Bash(export JAVA_HOME=\"C:/Program Files/Java/jdk-17\")",
+      "Bash(export ANDROID_HOME=\"D:/Android/Sdk\")",
+      "Bash(./gradlew assembleDebug)",
+      "Bash(D:/Android/Sdk/platform-tools/adb.exe install:*)",
+      "Bash(D:/Android/Sdk/platform-tools/adb.exe shell:*)",
+      "Bash(keytool -list -v -keystore __TRACKED_VAR__/.android/debug.keystore -alias androiddebugkey -storepass android)"
+    ]
+  }
+}

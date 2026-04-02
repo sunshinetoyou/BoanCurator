@@ -1,0 +1,8 @@
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.bookmarks.BookmarksViewModel
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.bookmarks.BookmarksViewModel
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.home.HomeViewModel
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.home.HomeViewModel
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.profile.ProfileViewModel
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.profile.ProfileViewModel
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.search.SearchViewModel
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.search.SearchViewModel
