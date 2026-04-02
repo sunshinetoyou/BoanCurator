@@ -60,5 +60,16 @@ services:
     volumes:
       - chroma_data:/app/chroma_data
 
+  # Watchtower (Docker 이미지 자동 업데이트)
+  watchtower:
+    image: containrrr/watchtower
+    container_name: boan_watchtower
+    restart: always
+    environment:
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_POLL_INTERVAL: 300
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
 volumes:
   chroma_data:
