@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#0D1117</color>
+    <string name="app_name">보안큐레이터</string>
+    <style name="Theme.BoanCurator" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#FF0D1117</item>
+        <item name="android:navigationBarColor">#FF0D1117</item>
+        <item name="android:windowBackground">#FF0D1117</item>
+    </style>
+</resources>

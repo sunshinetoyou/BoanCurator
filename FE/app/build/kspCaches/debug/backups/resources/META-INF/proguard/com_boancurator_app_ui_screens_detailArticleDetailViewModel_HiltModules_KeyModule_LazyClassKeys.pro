@@ -1,0 +1,4 @@
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.bookmarks.BookmarksViewModel
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.bookmarks.BookmarksViewModel
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.detail.ArticleDetailViewModel
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.detail.ArticleDetailViewModel
