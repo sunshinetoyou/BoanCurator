@@ -2,14 +2,34 @@ from typing import List, Optional
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship, Column
 from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy import String
+from sqlalchemy import String, JSON
 from enum import StrEnum
+
+
+# ── 6축 도메인 정의 ──
+
+SECURITY_DOMAINS = [
+    "network_infra",
+    "malware_vuln",
+    "cloud_devsecops",
+    "crypto_auth",
+    "policy_compliance",
+    "general_it",
+]
+
+DEFAULT_EXPERTISE = {d: 2 for d in SECURITY_DOMAINS}
 
 
 class Level(StrEnum):
     Low = "Low"
     Medium = "Medium"
     High = "High"
+
+
+class RelativeDifficulty(StrEnum):
+    Easy = "Easy"
+    Medium = "Medium"
+    Hard = "Hard"
 
 class Category(StrEnum):
     TECH = "Tech"
@@ -45,6 +65,7 @@ class AnalysisData(SQLModel):
     themes: List[str] = Field(sa_column=Column(ARRAY(String)))
     summary: str
     level: Level
+    domain_scores: Optional[dict] = Field(default=None, sa_column=Column(JSON))
     prompt_version: str
     model: str
 
@@ -69,6 +90,8 @@ class CardView(SQLModel):
     themes: List[str]
     level: Level
     category: Category
+    domain_scores: Optional[dict] = None
+    relative_difficulty: Optional[RelativeDifficulty] = None
 
     class Config:
         from_attributes = True
@@ -97,7 +120,7 @@ class User(SQLModel, table=True):
     email: str = Field(index=True, unique=True)
     username: str
     profile_image: Optional[str] = None
-    expertise_level: Level = Field(default=Level.Low)
+    expertise: dict = Field(default_factory=lambda: dict(DEFAULT_EXPERTISE), sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=datetime.now)
     bookmarks: List["Bookmark"] = Relationship(back_populates="user")
 
@@ -122,6 +145,8 @@ class BookmarkView(SQLModel):
     themes: List[str]
     level: Level
     category: Category
+    domain_scores: Optional[dict] = None
+    relative_difficulty: Optional[RelativeDifficulty] = None
     bookmarked_at: datetime
 
     class Config:

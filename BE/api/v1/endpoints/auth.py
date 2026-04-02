@@ -76,6 +76,6 @@ def google_login(
             "username": user.username,
             "email": user.email,
             "profile_image": user.profile_image,
-            "expertise_level": user.expertise_level,
+            "expertise": user.expertise,
         },
     )

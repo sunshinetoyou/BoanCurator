@@ -36,3 +36,20 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="User not found")
 
     return user
+
+
+def get_optional_user(
+    token: str = Depends(oauth2_scheme),
+    session: Session = Depends(get_session),
+) -> User | None:
+    """인증 선택적 — 토큰 없으면 None, 있으면 유저 반환."""
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
+        user_id: int = payload.get("user_id")
+        if user_id is None:
+            return None
+    except JWTError:
+        return None
+    return services.get_user_by_id(session, user_id)

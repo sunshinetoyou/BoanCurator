@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     database_url: str
     database_user: str = ""
     database_pw: str = ""
-    gemini_api_key: str
+    gemini_api_keys: str
     gemini_model: str
     max_content_length: int
 

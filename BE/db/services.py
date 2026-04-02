@@ -3,6 +3,7 @@ from sqlmodel import Session, select, func
 from sqlalchemy import or_, and_, any_
 
 from .models import *
+from .difficulty import calculate_relative_difficulty, update_user_expertise
 
 from datetime import datetime
 from typing import Optional
@@ -83,7 +84,8 @@ def _build_card_view_query(
     """카드뉴스 공통 쿼리 빌더 (데이터 조회 + 카운트에서 공유)"""
     statement = select(
         Article.source, Article.url, Article.title, Article.published_at, Article.image_urls,
-        Analysis.summary, Analysis.themes, Analysis.level, Analysis.category
+        Analysis.summary, Analysis.themes, Analysis.level, Analysis.category,
+        Analysis.domain_scores,
     ).join(Analysis, Article.id == Analysis.article_id)
 
     if category:
@@ -100,6 +102,7 @@ def get_card_view_list(
     level: Optional[Level] = None,
     offset: int = 0,
     limit: int = 20,
+    user_expertise: Optional[dict] = None,
 ) -> PaginatedResponse:
     """필터링된 카드 뉴스를 페이지네이션 메타데이터와 함께 반환합니다."""
     base = _build_card_view_query(category, level)
@@ -110,6 +113,13 @@ def get_card_view_list(
     data_stmt = base.order_by(Analysis.created_at.desc()).offset(offset).limit(limit)
     rows = session.exec(data_stmt).all()
     items = [CardView.model_validate(row) for row in rows]
+
+    if user_expertise:
+        for item in items:
+            if item.domain_scores:
+                item.relative_difficulty = calculate_relative_difficulty(
+                    item.domain_scores, user_expertise
+                )
 
     return PaginatedResponse(
         items=items,
@@ -126,7 +136,8 @@ def _build_theme_search_query(req: ThemeSearchRequest, mode: str):
     """테마 검색 공통 쿼리 빌더 (ARRAY 연산자 사용)"""
     statement = select(
         Article.source, Article.url, Article.title, Article.published_at, Article.image_urls,
-        Analysis.summary, Analysis.themes, Analysis.level, Analysis.category
+        Analysis.summary, Analysis.themes, Analysis.level, Analysis.category,
+        Analysis.domain_scores,
     ).join(Analysis, Article.id == Analysis.article_id)
 
     if req.themes:
@@ -237,7 +248,7 @@ def get_user_by_id(session: Session, user_id: int) -> Optional["User"]:
 # ── 북마크 ──
 
 def create_bookmark(session: Session, user_id: int, article_id: int) -> "Bookmark":
-    """북마크 생성 (중복 시 기존 반환)"""
+    """북마크 생성 (중복 시 기존 반환) + 유저 expertise 자동 업데이트"""
     existing = session.exec(
         select(Bookmark).where(
             Bookmark.user_id == user_id,
@@ -249,9 +260,31 @@ def create_bookmark(session: Session, user_id: int, article_id: int) -> "Bookmar
 
     bookmark = Bookmark(user_id=user_id, article_id=article_id)
     session.add(bookmark)
+
+    # 유저 expertise 자동 업데이트 (EMA)
+    _update_expertise_on_action(session, user_id, article_id, "bookmark")
+
     session.commit()
     session.refresh(bookmark)
     return bookmark
+
+
+def _update_expertise_on_action(
+    session: Session, user_id: int, article_id: int, action: str
+):
+    """기사의 domain_scores를 기반으로 유저 expertise를 EMA 업데이트"""
+    user = session.get(User, user_id)
+    analysis = session.exec(
+        select(Analysis).where(Analysis.article_id == article_id)
+    ).first()
+
+    if not user or not analysis or not analysis.domain_scores:
+        return
+
+    user.expertise = update_user_expertise(
+        user.expertise, analysis.domain_scores, action
+    )
+    session.add(user)
 
 
 def delete_bookmark(session: Session, bookmark_id: int, user_id: int) -> bool:
@@ -282,6 +315,7 @@ def get_user_bookmarks(
             Article.id.label("article_id"),
             Article.source, Article.url, Article.title,
             Analysis.summary, Analysis.themes, Analysis.level, Analysis.category,
+            Analysis.domain_scores,
             Bookmark.created_at.label("bookmarked_at"),
         )
         .join(Article, Bookmark.article_id == Article.id)
@@ -293,3 +327,36 @@ def get_user_bookmarks(
     )
     rows = session.exec(statement).all()
     return [BookmarkView.model_validate(row) for row in rows]
+
+
+def record_article_read(session: Session, user_id: int, article_id: int):
+    """기사 읽음 이벤트 → 유저 expertise 자동 업데이트"""
+    _update_expertise_on_action(session, user_id, article_id, "read")
+    session.commit()
+
+
+def get_user_stats(session: Session, user_id: int) -> dict:
+    """유저 활동 통계: 북마크 수 + 도메인별 관심 분포"""
+    bookmark_count = session.exec(
+        select(func.count()).where(Bookmark.user_id == user_id)
+    ).one()
+
+    # 북마크한 기사들의 domain_scores 조회
+    rows = session.exec(
+        select(Analysis.domain_scores)
+        .join(Bookmark, Bookmark.article_id == Analysis.article_id)
+        .where(Bookmark.user_id == user_id)
+        .where(Analysis.domain_scores.isnot(None))
+    ).all()
+
+    domain_distribution = {d: 0 for d in SECURITY_DOMAINS}
+    for scores in rows:
+        if not scores:
+            continue
+        primary = max(scores, key=scores.get)
+        domain_distribution[primary] += 1
+
+    return {
+        "bookmark_count": bookmark_count,
+        "domain_distribution": domain_distribution,
+    }

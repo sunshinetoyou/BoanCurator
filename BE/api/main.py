@@ -33,6 +33,14 @@ app.add_middleware(
     max_age=100,
 )
 
+BUILD_VERSION = "2026-04-02"
+
+
+@app.get("/health")
+def health():
+    return {"version": BUILD_VERSION, "status": "ok"}
+
+
 app.include_router(api_router, prefix="/v1")
 
 

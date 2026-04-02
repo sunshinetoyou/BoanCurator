@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import Optional
 
 import chromadb
@@ -10,7 +11,22 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
-_genai_client = genai.Client(api_key=settings.gemini_api_key)
+_api_keys = [k.strip() for k in settings.gemini_api_keys.split(",") if k.strip()]
+_genai_clients = [genai.Client(api_key=k) for k in _api_keys]
+_current_key_index = 0
+
+
+def _get_genai_client() -> genai.Client:
+    return _genai_clients[_current_key_index]
+
+
+def _rotate_genai_key(base_delay: float = 3.0):
+    global _current_key_index
+    prev = _current_key_index
+    _current_key_index = (_current_key_index + 1) % len(_genai_clients)
+    delay = base_delay * (2 ** (_current_key_index % len(_genai_clients)))
+    logger.info(f"임베딩 API 키 전환: {prev} → {_current_key_index} (대기 {delay:.0f}초)")
+    time.sleep(delay)
 
 _chroma_client = chromadb.PersistentClient(path="./chroma_data")
 _collection = _chroma_client.get_or_create_collection(
@@ -60,7 +76,19 @@ def _embed_content(text: str, image_urls: list[str] = None) -> list[float]:
             data, mime = result
             contents.append(types.Part.from_bytes(data=data, mime_type=mime))
 
-    result = _genai_client.models.embed_content(
+    for _ in range(len(_genai_clients)):
+        try:
+            result = _get_genai_client().models.embed_content(
+                model=settings.embedding_model,
+                contents=contents,
+            )
+            return result.embeddings[0].values
+        except Exception as e:
+            if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                _rotate_genai_key()
+            else:
+                raise
+    result = _get_genai_client().models.embed_content(
         model=settings.embedding_model,
         contents=contents,
     )

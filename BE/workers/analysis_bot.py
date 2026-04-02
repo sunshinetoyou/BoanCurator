@@ -34,6 +34,11 @@ def run_analysis_bot():
                     services.save_analysis(session, target_article.id, analysis_data)
 
                     # ChromaDB에 멀티모달 임베딩 저장
+                    primary_domain = max(
+                        analysis_data.domain_scores,
+                        key=analysis_data.domain_scores.get,
+                    ) if analysis_data.domain_scores else "general_it"
+
                     store_embedding(
                         article_id=target_article.id,
                         title=target_article.title,
@@ -42,6 +47,7 @@ def run_analysis_bot():
                             "source": target_article.source,
                             "category": analysis_data.category,
                             "level": analysis_data.level,
+                            "primary_domain": primary_domain,
                         },
                         image_urls=target_article.image_urls,
                     )

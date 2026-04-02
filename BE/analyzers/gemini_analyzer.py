@@ -6,92 +6,103 @@ from google.genai import types
 
 from .base import BaseAnalyzer
 from config import settings
-from db.models import Article, AnalysisData, Category, Theme, Level
+from db.models import Article, AnalysisData, Category, Theme, Level, SECURITY_DOMAINS
 
 logger = logging.getLogger(__name__)
 
 
 class GeminiAnalyzer(BaseAnalyzer):
-    def __init__(self, prompt_version: str = "v2"):
-        self.client = genai.Client(api_key=settings.gemini_api_key)
+    def __init__(self, prompt_version: str = "v3"):
+        api_keys = [k.strip() for k in settings.gemini_api_keys.split(",") if k.strip()]
+        self.clients = [genai.Client(api_key=k) for k in api_keys]
+        self._key_index = 0
         self.model_name = settings.gemini_model
         self.prompt_version = prompt_version
 
+    @property
+    def client(self) -> genai.Client:
+        return self.clients[self._key_index]
+
+    def _rotate_key(self, base_delay: float = 3.0):
+        """다음 API 키로 전환 (키 간 간격을 두어 동시 호출 패턴 방지)"""
+        prev = self._key_index
+        self._key_index = (self._key_index + 1) % len(self.clients)
+        # 키 순번에 비례한 지수적 텀: 1번째 키→3초, 2번째→6초, 3번째→12초...
+        delay = base_delay * (2 ** (self._key_index % len(self.clients)))
+        logger.info(f"API 키 전환: {prev} → {self._key_index} (대기 {delay:.0f}초)")
+        time.sleep(delay)
+
     def analyze(self, article: Article) -> AnalysisData | None:
-        # 1. [Agent 1] Analyst: 분류 및 요약
         categories = [c.value for c in Category]
         themes = [t.value for t in Theme]
 
-        analyst_res = self._run_analyst(article, categories, themes)
-        if not analyst_res:
-            return None
-
-        # 2. [Agent 2] Judge: 기술적 깊이(Level) 판별
-        levels = [l.value for l in Level]
-        final_level = self._run_judge(analyst_res, levels)
-
-        # 3. 최종 AnalysisData 규격으로 병합
-        return AnalysisData(
-            category=analyst_res.get("category", Category.TECH.value),
-            themes=analyst_res.get("themes", []),
-            summary=analyst_res.get("summary", ""),
-            level=final_level,
-            prompt_version=self.prompt_version,
-            model=self.model_name,
-        )
-
-    def _run_analyst(self, article: Article, categories: list, themes: list) -> dict | None:
-        """Agent 1: 추출 및 분류 (DB 스키마 준수)"""
-        system_prompt = f"""당신은 IT 전문 뉴스 분석가입니다. 아래 지침에 따라 뉴스 본문을 분석하여 오직 유효한 JSON만 출력하세요.
+        system_prompt = f"""당신은 IT/보안 전문 뉴스 분석가입니다. 아래 지침에 따라 뉴스 본문을 분석하여 오직 유효한 JSON만 출력하세요.
 
         [지침]
         1. Category: 반드시 다음 중 하나만 선택하세요: {categories}
         2. Themes: 다음 리스트 중 관련 있는 항목을 모두 선택하세요(최대 3개): {themes}
         3. Summary: 뉴스 본문을 한국어 1문장으로 핵심만 요약하세요.
-        4. Technical Keywords: 핵심 기술 용어를 추출하세요(최대 3개)
+        4. Technical Keywords: 핵심 기술 용어를 추출하세요(최대 3개).
+        5. Domain Scores: 기사의 기술적 깊이를 아래 6개 도메인 축에 대해 0~5 정수로 평가하세요.
+           - network_infra: 네트워크/인프라 보안 (방화벽, IDS/IPS, 네트워크 포렌식 등)
+           - malware_vuln: 악성코드/취약점 분석 (CVE, 익스플로잇, 리버스엔지니어링 등)
+           - cloud_devsecops: 클라우드/DevSecOps (AWS/Azure/GCP 보안, CI/CD, 컨테이너 보안 등)
+           - crypto_auth: 암호학/인증 (TLS, PKI, OAuth, 암호 프로토콜 등)
+           - policy_compliance: 정책/컴플라이언스 (개인정보보호법, ISMS, 규제, 거버넌스 등)
+           - general_it: 일반 IT/개발 (프로그래밍, OS, DB, 일반 IT 뉴스 등)
+           0 = 해당 도메인과 무관, 5 = 해당 도메인의 최고 수준 전문 지식 필요
 
         [출력 JSON 양식]
         {{
             "category": "선택한 카테고리",
             "themes": ["테마1", "테마2"],
             "summary": "한국어 요약",
-            "technical_keywords": ["CVE-2024-...", "Buffer Overflow", "ROP chain"]
+            "technical_keywords": ["CVE-2024-...", "Buffer Overflow", "ROP chain"],
+            "domain_scores": {{
+                "network_infra": 0,
+                "malware_vuln": 0,
+                "cloud_devsecops": 0,
+                "crypto_auth": 0,
+                "policy_compliance": 0,
+                "general_it": 0
+            }}
         }}"""
 
         user_content = f"제목: {article.title}\n본문: {article.content[:8000]}"
+        result = self._call_gemini_json(system_prompt, user_content)
+        if not result:
+            return None
 
-        return self._call_gemini_json(system_prompt, user_content)
+        # domain_scores 검증 및 정규화
+        domain_scores = result.get("domain_scores", {})
+        domain_scores = {
+            d: max(0, min(5, int(domain_scores.get(d, 0))))
+            for d in SECURITY_DOMAINS
+        }
 
-    def _run_judge(self, analyst_data: dict, levels: list) -> str:
-        """Agent 2: 난이도 판단 (기술적 깊이 기준)"""
-        summary = analyst_data.get("summary", "")
-        themes = analyst_data.get("themes", [])
+        # 레거시 level 자동 도출
+        max_score = max(domain_scores.values()) if domain_scores else 0
+        if max_score >= 4:
+            level = Level.High.value
+        elif max_score >= 2:
+            level = Level.Medium.value
+        else:
+            level = Level.Low.value
 
-        system_prompt = f"""당신은 보안 뉴스 에디터입니다. 분석 데이터의 기술적 깊이를 평가하여 중요도를 결정하세요.
-        출력은 오직 다음 값 중 하나만 허용됩니다: {levels}
-
-        [평가 기준]
-        - High: 취약점 분석, Exploit 코드, 복잡한 아키텍처, 0-day, 심층 연구 보고서.
-        - Medium: 가이드라인, 기술적 설정 방법, 일반적인 보안 사고 분석, 클라우드 인프라 운영.
-        - Low: 단순 단신, 정책 변경, 일반 IT 뉴스, 인사 이동, 단순 이벤트 소식.
-
-        [입력 데이터]
-        - Themes: {themes}
-        - Summary: {summary}"""
-
-        response = self._call_gemini(system_prompt, "위 데이터를 기반으로 Level을 판단해주세요.")
-        if not response:
-            return Level.Low.value
-
-        if "High" in response:
-            return Level.High.value
-        if "Medium" in response:
-            return Level.Medium.value
-        return Level.Low.value
+        return AnalysisData(
+            category=result.get("category", Category.TECH.value),
+            themes=result.get("themes", []),
+            summary=result.get("summary", ""),
+            level=level,
+            domain_scores=domain_scores,
+            prompt_version=self.prompt_version,
+            model=self.model_name,
+        )
 
     def _call_gemini_json(self, system_prompt: str, user_content: str, max_retries: int = 3) -> dict | None:
-        """Gemini API 호출 (JSON 모드) + 재시도"""
-        for attempt in range(max_retries):
+        """Gemini API 호출 (JSON 모드) + 키 로테이션 + 재시도"""
+        keys_tried = 0
+        for attempt in range(max_retries * len(self.clients)):
             try:
                 response = self.client.models.generate_content(
                     model=self.model_name,
@@ -103,25 +114,15 @@ class GeminiAnalyzer(BaseAnalyzer):
                 )
                 return json.loads(response.text)
             except Exception as e:
-                logger.warning(f"Gemini JSON 호출 실패 (시도 {attempt + 1}/{max_retries}): {e}")
-                if attempt < max_retries - 1:
-                    time.sleep(2 ** (attempt + 1))
-        return None
-
-    def _call_gemini(self, system_prompt: str, user_content: str, max_retries: int = 3) -> str | None:
-        """Gemini API 호출 (텍스트 모드) + 재시도"""
-        for attempt in range(max_retries):
-            try:
-                response = self.client.models.generate_content(
-                    model=self.model_name,
-                    contents=user_content,
-                    config=types.GenerateContentConfig(
-                        system_instruction=system_prompt,
-                    ),
-                )
-                return response.text.strip()
-            except Exception as e:
-                logger.warning(f"Gemini 호출 실패 (시도 {attempt + 1}/{max_retries}): {e}")
-                if attempt < max_retries - 1:
-                    time.sleep(2 ** (attempt + 1))
+                err_str = str(e)
+                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                    self._rotate_key()
+                    keys_tried += 1
+                    if keys_tried >= len(self.clients):
+                        logger.warning(f"모든 키 소진, backoff 대기 (시도 {attempt + 1})")
+                        keys_tried = 0
+                        time.sleep(2 ** min(attempt, 4))
+                else:
+                    logger.warning(f"Gemini JSON 호출 실패 (시도 {attempt + 1}): {e}")
+                    time.sleep(2 ** min(attempt, 4))
         return None
