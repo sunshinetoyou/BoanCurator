@@ -34,4 +34,8 @@ class ArticleRepository @Inject constructor(
     suspend fun getRecommendations(): List<CardView> {
         return apiService.getRecommendations()
     }
+
+    suspend fun getAvailableYears(): List<Int> {
+        return apiService.getAvailableYears()
+    }
 }

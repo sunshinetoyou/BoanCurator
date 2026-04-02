@@ -27,8 +27,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.boancurator.app.data.model.ApiCategory
 import com.boancurator.app.data.model.CardView
+import com.boancurator.app.ui.screens.home.SecurityField
+import com.boancurator.app.ui.screens.home.getSecurityField
+import com.boancurator.app.ui.theme.Cyan
 import com.boancurator.app.ui.theme.DarkCard
 import com.boancurator.app.ui.theme.DarkSurface
 import com.boancurator.app.ui.theme.TextMuted
@@ -87,13 +89,13 @@ fun ArticleCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     LevelBadge(level = article.level)
-                    if (article.category != null) {
-                        Text(
-                            text = ApiCategory.toKorean(article.category),
-                            color = TextMuted,
-                            fontSize = 12.sp
-                        )
-                    }
+                    val field = getSecurityField(article.themes)
+                    Text(
+                        text = field.label,
+                        color = if (field == SecurityField.ETC) TextMuted else Cyan.copy(alpha = 0.7f),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

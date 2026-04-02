@@ -605,7 +605,7 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
     }
 
     @Override
-    public void injectBoanCuratorApp(BoanCuratorApp boanCuratorApp) {
+    public void injectBoanCuratorApp(BoanCuratorApp arg0) {
     }
 
     @Override

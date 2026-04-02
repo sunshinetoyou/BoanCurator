@@ -14,28 +14,27 @@ import com.boancurator.app.data.model.ApiLevel
 import com.boancurator.app.ui.theme.LevelAdvanced
 import com.boancurator.app.ui.theme.LevelBeginner
 import com.boancurator.app.ui.theme.LevelIntermediate
-import com.boancurator.app.ui.theme.TextPrimary
 
 @Composable
 fun LevelBadge(level: String?, modifier: Modifier = Modifier) {
     if (level == null) return
 
     val (color, label) = when (level) {
-        ApiLevel.LOW -> LevelBeginner to "초급"
-        ApiLevel.MEDIUM -> LevelIntermediate to "중급"
-        ApiLevel.HIGH -> LevelAdvanced to "고급"
+        ApiLevel.LOW -> LevelBeginner to "LOW"
+        ApiLevel.MEDIUM -> LevelIntermediate to "MID"
+        ApiLevel.HIGH -> LevelAdvanced to "HIGH"
         else -> LevelBeginner to level
     }
 
     Text(
         text = label,
-        color = TextPrimary,
-        fontSize = 11.sp,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = 0.5.sp,
+        color = color,
+        fontSize = 10.sp,
+        fontWeight = FontWeight.Black,
+        letterSpacing = 0.8.sp,
         modifier = modifier
-            .clip(RoundedCornerShape(4.dp))
-            .background(color.copy(alpha = 0.2f))
-            .padding(horizontal = 8.dp, vertical = 3.dp)
+            .clip(RoundedCornerShape(3.dp))
+            .background(color.copy(alpha = 0.15f))
+            .padding(horizontal = 6.dp, vertical = 2.dp)
     )
 }
