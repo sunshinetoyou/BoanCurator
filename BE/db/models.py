@@ -80,6 +80,7 @@ class Analysis(AnalysisData, table=True):
 
 # VIEW 설정
 class CardView(SQLModel):
+    article_id: Optional[int] = None
     source: str
     url: str
     title: str

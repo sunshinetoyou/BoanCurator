@@ -83,6 +83,7 @@ def _build_card_view_query(
 ):
     """카드뉴스 공통 쿼리 빌더 (데이터 조회 + 카운트에서 공유)"""
     statement = select(
+        Article.id.label("article_id"),
         Article.source, Article.url, Article.title, Article.published_at, Article.image_urls,
         Analysis.summary, Analysis.themes, Analysis.level, Analysis.category,
         Analysis.domain_scores,
@@ -135,6 +136,7 @@ def get_card_view_list(
 def _build_theme_search_query(req: ThemeSearchRequest, mode: str):
     """테마 검색 공통 쿼리 빌더 (ARRAY 연산자 사용)"""
     statement = select(
+        Article.id.label("article_id"),
         Article.source, Article.url, Article.title, Article.published_at, Article.image_urls,
         Analysis.summary, Analysis.themes, Analysis.level, Analysis.category,
         Analysis.domain_scores,

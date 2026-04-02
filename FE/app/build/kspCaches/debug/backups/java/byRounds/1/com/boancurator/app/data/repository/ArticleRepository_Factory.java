@@ -1,6 +1,7 @@
 package com.boancurator.app.data.repository;
 
 import com.boancurator.app.data.api.ApiService;
+import com.boancurator.app.data.local.ArticleDao;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;
@@ -27,20 +28,25 @@ import javax.inject.Provider;
 public final class ArticleRepository_Factory implements Factory<ArticleRepository> {
   private final Provider<ApiService> apiServiceProvider;
 
-  public ArticleRepository_Factory(Provider<ApiService> apiServiceProvider) {
+  private final Provider<ArticleDao> articleDaoProvider;
+
+  public ArticleRepository_Factory(Provider<ApiService> apiServiceProvider,
+      Provider<ArticleDao> articleDaoProvider) {
     this.apiServiceProvider = apiServiceProvider;
+    this.articleDaoProvider = articleDaoProvider;
   }
 
   @Override
   public ArticleRepository get() {
-    return newInstance(apiServiceProvider.get());
+    return newInstance(apiServiceProvider.get(), articleDaoProvider.get());
   }
 
-  public static ArticleRepository_Factory create(Provider<ApiService> apiServiceProvider) {
-    return new ArticleRepository_Factory(apiServiceProvider);
+  public static ArticleRepository_Factory create(Provider<ApiService> apiServiceProvider,
+      Provider<ArticleDao> articleDaoProvider) {
+    return new ArticleRepository_Factory(apiServiceProvider, articleDaoProvider);
   }
 
-  public static ArticleRepository newInstance(ApiService apiService) {
-    return new ArticleRepository(apiService);
+  public static ArticleRepository newInstance(ApiService apiService, ArticleDao articleDao) {
+    return new ArticleRepository(apiService, articleDao);
   }
 }

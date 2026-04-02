@@ -1,9 +1,12 @@
 package com.boancurator.app.di
 
 import android.content.Context
+import androidx.room.Room
 import com.boancurator.app.BuildConfig
 import com.boancurator.app.data.api.ApiService
 import com.boancurator.app.data.api.AuthInterceptor
+import com.boancurator.app.data.local.AppDatabase
+import com.boancurator.app.data.local.ArticleDao
 import com.boancurator.app.util.TokenManager
 import dagger.Module
 import dagger.Provides
@@ -56,5 +59,19 @@ object AppModule {
     @Singleton
     fun provideApiService(retrofit: Retrofit): ApiService {
         return retrofit.create(ApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(context, AppDatabase::class.java, "boancurator.db")
+            .fallbackToDestructiveMigration()
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideArticleDao(database: AppDatabase): ArticleDao {
+        return database.articleDao()
     }
 }

@@ -17,7 +17,8 @@
       "Bash(.venv/Scripts/python tests/test_scrapers.py S2W)",
       "Bash(.venv/Scripts/python tests/test_scrapers.py Krebs)",
       "Bash(.venv/Scripts/python tests/test_rss_scrapers.py \"Unit 42\")",
-      "Bash(.venv/Scripts/python tests/test_rss_scrapers.py Mandiant)"
+      "Bash(.venv/Scripts/python tests/test_rss_scrapers.py Mandiant)",
+      "Bash(curl -s https://bc-api.danyeon.cloud/health)"
     ]
   }
 }

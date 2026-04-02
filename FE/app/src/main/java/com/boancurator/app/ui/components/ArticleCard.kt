@@ -13,9 +13,15 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -36,22 +42,23 @@ import com.boancurator.app.ui.theme.DarkSurface
 import com.boancurator.app.ui.theme.TextMuted
 import com.boancurator.app.ui.theme.TextPrimary
 import com.boancurator.app.ui.theme.TextSecondary
+import com.boancurator.app.ui.theme.Warning
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ArticleCard(
     article: CardView,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isBookmarked: Boolean = false,
+    onBookmarkClick: (() -> Unit)? = null
 ) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = DarkCard)
     ) {
-        Column {
+        Column(modifier = Modifier.clickable(onClick = onClick)) {
             val imageUrl = article.imageUrls?.firstOrNull()
             if (imageUrl != null) {
                 AsyncImage(
@@ -141,8 +148,25 @@ fun ArticleCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = article.source, color = TextMuted, fontSize = 12.sp)
-                    Text(text = formatDate(article.publishedAt), color = TextMuted, fontSize = 12.sp)
+                    Row {
+                        Text(text = article.source, color = TextMuted, fontSize = 12.sp)
+                        Text(text = "  ·  ", color = TextMuted, fontSize = 12.sp)
+                        Text(text = formatDate(article.publishedAt), color = TextMuted, fontSize = 12.sp)
+                    }
+
+                    if (onBookmarkClick != null) {
+                        IconButton(
+                            onClick = onBookmarkClick,
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
+                                contentDescription = "북마크",
+                                tint = if (isBookmarked) Warning else TextMuted,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                 }
             }
         }

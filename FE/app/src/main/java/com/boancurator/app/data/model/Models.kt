@@ -13,6 +13,7 @@ data class PaginatedResponse(
 )
 
 data class CardView(
+    @SerializedName("article_id") val articleId: Int? = null,
     val source: String,
     val url: String,
     val title: String,

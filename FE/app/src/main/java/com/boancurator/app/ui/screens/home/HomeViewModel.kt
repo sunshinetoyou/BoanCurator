@@ -2,8 +2,11 @@ package com.boancurator.app.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.util.Log
 import com.boancurator.app.data.model.CardView
 import com.boancurator.app.data.repository.ArticleRepository
+import com.boancurator.app.data.repository.AuthRepository
+import com.boancurator.app.data.repository.BookmarkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -69,12 +72,16 @@ data class HomeUiState(
     val selectedSource: String? = null,
     val filtersExpanded: Boolean = false,
     // Sources extracted from data
-    val availableSources: List<String> = emptyList()
+    val availableSources: List<String> = emptyList(),
+    // Bookmarks
+    val bookmarkedUrls: Set<String> = emptySet()
 )
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val articleRepository: ArticleRepository
+    private val articleRepository: ArticleRepository,
+    private val bookmarkRepository: BookmarkRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -85,8 +92,61 @@ class HomeViewModel @Inject constructor(
     }
 
     init {
-        loadYears()
-        loadArticles()
+        loadFromCacheThenSync()
+    }
+
+    /** 캐시 먼저 표시 -> API로 최신 데이터 동기화 */
+    private fun loadFromCacheThenSync() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+            // 1. 캐시에서 즉시 로드
+            try {
+                val cached = articleRepository.getCachedArticles()
+                if (cached.isNotEmpty()) {
+                    _uiState.value = _uiState.value.copy(
+                        allArticles = cached,
+                        isLoading = false
+                    )
+                    rebuildGroups()
+                    updateYearsFromData()
+                }
+            } catch (_: Exception) {}
+
+            // 2. API에서 최신 데이터 동기화
+            loadYears()
+            loadArticles()
+
+            // 3. 오래된 캐시 정리
+            try { articleRepository.cleanOldCache() } catch (_: Exception) {}
+        }
+    }
+
+    // === Bookmark ===
+    /** @return true if bookmark toggled, false if not logged in */
+    fun toggleBookmark(article: CardView): Boolean {
+        val hasToken = kotlinx.coroutines.runBlocking { authRepository.isAuthenticated() }
+        if (!hasToken) return false
+        val articleId = article.articleId ?: return false
+
+        val current = _uiState.value.bookmarkedUrls
+        if (article.url in current) {
+            _uiState.value = _uiState.value.copy(bookmarkedUrls = current - article.url)
+            // API 삭제는 bookmarkId가 필요하므로 일단 UI만 토글
+        } else {
+            _uiState.value = _uiState.value.copy(bookmarkedUrls = current + article.url)
+            viewModelScope.launch {
+                try {
+                    bookmarkRepository.createBookmark(articleId)
+                } catch (e: Exception) {
+                    Log.e("HomeVM", "Bookmark create failed", e)
+                    // 실패 시 롤백
+                    _uiState.value = _uiState.value.copy(
+                        bookmarkedUrls = _uiState.value.bookmarkedUrls - article.url
+                    )
+                }
+            }
+        }
+        return true
     }
 
     // === Filter actions ===
@@ -125,12 +185,18 @@ class HomeViewModel @Inject constructor(
 
     fun getWeekIndexForYear(year: Int): Int {
         var index = 0
+        var lastYear: Int? = null
         for (week in _uiState.value.weekGroups) {
-            if (week.year == year) return index
-            index++
+            // 연도 구분 헤더
+            if (week.year != lastYear) {
+                if (week.year == year) return index
+                index++ // year divider item
+                lastYear = week.year
+            }
+            index++ // week header item
             if (!week.collapsed) {
                 for (day in week.days) {
-                    index++
+                    index++ // day header
                     if (!day.collapsed) index += day.articles.size
                 }
             }
@@ -158,7 +224,8 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val response = articleRepository.getCardNews(offset = state.offset, limit = PAGE_SIZE)
-                val newAll = _uiState.value.allArticles + response.items
+                val existingUrls = _uiState.value.allArticles.map { it.url }.toSet()
+                val newAll = _uiState.value.allArticles + response.items.filter { it.url !in existingUrls }
                 _uiState.value = _uiState.value.copy(
                     allArticles = newAll,
                     offset = _uiState.value.offset + response.items.size,
@@ -186,8 +253,15 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val response = articleRepository.getCardNews(offset = 0, limit = PAGE_SIZE)
+                // 기존 데이터와 병합 (URL 기준 중복 제거)
+                val existing = _uiState.value.allArticles
+                val newUrls = response.items.map { it.url }.toSet()
+                val merged = response.items + existing.filter { it.url !in newUrls }
+                val isFirstLoad = _uiState.value.weekGroups.isEmpty()
+
                 _uiState.value = _uiState.value.copy(
-                    allArticles = response.items,
+                    allArticles = merged,
+                    weekGroups = if (isFirstLoad) emptyList() else _uiState.value.weekGroups,
                     offset = response.items.size,
                     hasMore = response.hasMore,
                     isLoading = false,
@@ -197,7 +271,11 @@ class HomeViewModel @Inject constructor(
                 rebuildGroups()
                 updateYearsFromData()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
+                // API 실패해도 캐시 데이터가 있으면 표시 유지
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = if (_uiState.value.allArticles.isEmpty()) e.message else null
+                )
             }
         }
     }
@@ -225,18 +303,23 @@ class HomeViewModel @Inject constructor(
         )
 
         val weeks = buildWeekGroups(sorted)
-        // 최신 주차 + 최신 날짜 펼침
-        val expanded = weeks.mapIndexed { i, week ->
-            if (i == 0) {
-                week.copy(
-                    collapsed = false,
-                    days = week.days.mapIndexed { j, day ->
-                        if (j == 0) day.copy(collapsed = false) else day
-                    }
-                )
-            } else week
+
+        // 기존 토글 상태 보존
+        val prevWeekState = state.weekGroups.associate { it.key to it.collapsed }
+        val prevDayState = state.weekGroups.flatMap { it.days }.associate { it.date to it.collapsed }
+        val isFirstLoad = state.weekGroups.isEmpty()
+
+        val restored = weeks.mapIndexed { i, week ->
+            val weekCollapsed = prevWeekState[week.key] ?: (if (isFirstLoad && i == 0) false else true)
+            week.copy(
+                collapsed = weekCollapsed,
+                days = week.days.mapIndexed { j, day ->
+                    val dayCollapsed = prevDayState[day.date] ?: (if (isFirstLoad && i == 0 && j == 0) false else true)
+                    day.copy(collapsed = dayCollapsed)
+                }
+            )
         }
-        _uiState.value = _uiState.value.copy(weekGroups = expanded)
+        _uiState.value = _uiState.value.copy(weekGroups = restored)
     }
 
     private fun levelOrder(level: String?): Int = when (level) {

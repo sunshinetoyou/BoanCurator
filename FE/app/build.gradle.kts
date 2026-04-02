@@ -91,6 +91,11 @@ dependencies {
     // Coroutines
     implementation(libs.coroutines.android)
 
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
     // Google Sign-In
     implementation(libs.credentials)
     implementation(libs.credentials.play)

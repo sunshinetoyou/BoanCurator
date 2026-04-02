@@ -8,7 +8,8 @@
       "Bash(./gradlew assembleDebug)",
       "Bash(D:/Android/Sdk/platform-tools/adb.exe install:*)",
       "Bash(D:/Android/Sdk/platform-tools/adb.exe shell:*)",
-      "Bash(keytool -list -v -keystore __TRACKED_VAR__/.android/debug.keystore -alias androiddebugkey -storepass android)"
+      "Bash(keytool -list -v -keystore __TRACKED_VAR__/.android/debug.keystore -alias androiddebugkey -storepass android)",
+      "Bash(curl -s \"https://bc-api.danyeon.cloud/v1/cardnews?offset=0&limit=1\")"
     ]
   }
 }

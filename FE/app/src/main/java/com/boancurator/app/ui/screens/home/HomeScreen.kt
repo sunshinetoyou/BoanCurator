@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import android.widget.Toast
 import com.boancurator.app.ui.components.ArticleCard
 import com.boancurator.app.ui.theme.Cyan
 import com.boancurator.app.ui.theme.DarkBackground
@@ -178,6 +179,13 @@ fun HomeScreen(
                                                 onClick = {
                                                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(article.url)))
                                                 },
+                                                isBookmarked = article.url in uiState.bookmarkedUrls,
+                                                onBookmarkClick = {
+                                                    val toggled = viewModel.toggleBookmark(article)
+                                                    if (!toggled) {
+                                                        Toast.makeText(context, "로그인 후 북마크할 수 있습니다", Toast.LENGTH_SHORT).show()
+                                                    }
+                                                },
                                                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp)
                                             )
                                         }
@@ -200,7 +208,7 @@ fun HomeScreen(
                         YearScrollIndicator(
                             years = uiState.years, currentYear = currentYear,
                             onYearSelected = { year ->
-                                scope.launch { listState.animateScrollToItem(viewModel.getWeekIndexForYear(year)) }
+                                scope.launch { listState.scrollToItem(viewModel.getWeekIndexForYear(year)) }
                             }
                         )
                     }
@@ -221,54 +229,73 @@ private fun FilterBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(DarkSurface)
-            .padding(top = 8.dp, bottom = 4.dp)
     ) {
-        // 분야 필터 (항상 표시)
+        // 활성 필터 요약 + 더보기 토글
         Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 14.dp)
-        ) {
-            FilterPill(
-                text = "전체",
-                selected = uiState.selectedField == null,
-                onClick = { onFieldSelected(null) }
-            )
-            SecurityField.entries.forEach { field ->
-                FilterPill(
-                    text = field.label,
-                    selected = uiState.selectedField == field,
-                    onClick = { onFieldSelected(field) }
-                )
-            }
-        }
-
-        // 더보기 / 접기
-        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onToggleExpanded)
-                .padding(vertical = 6.dp),
-            contentAlignment = Alignment.Center
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     if (uiState.filtersExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
                     contentDescription = null,
-                    tint = Cyan.copy(alpha = 0.4f),
+                    tint = Cyan.copy(alpha = 0.6f),
                     modifier = Modifier.size(18.dp)
                 )
+                Spacer(Modifier.width(6.dp))
+                // 현재 적용된 필터 표시
+                val activeFilters = mutableListOf<String>()
+                if (uiState.selectedField != null) activeFilters.add(uiState.selectedField.label)
+                if (uiState.selectedSource != null) activeFilters.add(uiState.selectedSource)
+
+                if (activeFilters.isEmpty()) {
+                    Text("필터", color = TextMuted, fontSize = 13.sp)
+                } else {
+                    Text(
+                        activeFilters.joinToString(" · "),
+                        color = Cyan,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
 
-        // 출처 필터 (더보기 시 표시)
+        // 더보기: 분야 + 출처
         AnimatedVisibility(
             visible = uiState.filtersExpanded,
             enter = expandVertically(),
             exit = shrinkVertically()
         ) {
-            Column(modifier = Modifier.padding(bottom = 6.dp)) {
+            Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                // 분야
+                Text(
+                    "분야",
+                    color = Cyan.copy(alpha = 0.5f),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
+                    modifier = Modifier.padding(start = 14.dp, bottom = 4.dp)
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 14.dp)
+                ) {
+                    FilterPill("전체", uiState.selectedField == null) { onFieldSelected(null) }
+                    SecurityField.entries.forEach { field ->
+                        FilterPill(field.label, uiState.selectedField == field) { onFieldSelected(field) }
+                    }
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                // 출처
                 Text(
                     "출처",
                     color = Cyan.copy(alpha = 0.5f),
@@ -283,17 +310,9 @@ private fun FilterBar(
                         .horizontalScroll(rememberScrollState())
                         .padding(horizontal = 14.dp)
                 ) {
-                    FilterPill(
-                        text = "전체",
-                        selected = uiState.selectedSource == null,
-                        onClick = { onSourceSelected(null) }
-                    )
+                    FilterPill("전체", uiState.selectedSource == null) { onSourceSelected(null) }
                     uiState.availableSources.forEach { source ->
-                        FilterPill(
-                            text = source,
-                            selected = uiState.selectedSource == source,
-                            onClick = { onSourceSelected(source) }
-                        )
+                        FilterPill(source, uiState.selectedSource == source) { onSourceSelected(source) }
                     }
                 }
             }

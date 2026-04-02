@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.boancurator.app-mergeDebugResources-66:/values-v30/values-v30.xml",
+            "outputFile": "com.boancurator.app-mergeDebugResources-70:/values-v30/values-v30.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\yeonsu\\.gradle\\caches\\8.11.1\\transforms\\357adf59e09083217911dddf6880815a\\transformed\\material3-release\\res\\values-v30\\values-v30.xml",
+                    "source": "C:\\Users\\yeonsu\\.gradle\\caches\\8.11.1\\transforms\\c6cd4a0d3193664391b416723517b5ce\\transformed\\material3-release\\res\\values-v30\\values-v30.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",
