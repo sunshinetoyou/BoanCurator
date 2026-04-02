@@ -58,6 +58,7 @@ fun ArticleCard(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = DarkCard)
     ) {
+        // 카드 본문 (탭 → 브라우저)
         Column(modifier = Modifier.clickable(onClick = onClick)) {
             val imageUrl = article.imageUrls?.firstOrNull()
             if (imageUrl != null) {
@@ -90,7 +91,7 @@ fun ArticleCard(
                 }
             }
 
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -140,33 +141,35 @@ fun ArticleCard(
                             ThemeTag(theme = theme)
                         }
                     }
-                    Spacer(modifier = Modifier.height(10.dp))
                 }
+            }
+        }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+        // 하단 바: 출처 + 날짜 + 북마크 (clickable Column 바깥)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row {
+                Text(text = article.source, color = TextMuted, fontSize = 12.sp)
+                Text(text = "  ·  ", color = TextMuted, fontSize = 12.sp)
+                Text(text = formatDate(article.publishedAt), color = TextMuted, fontSize = 12.sp)
+            }
+
+            if (onBookmarkClick != null) {
+                IconButton(
+                    onClick = onBookmarkClick,
+                    modifier = Modifier.size(32.dp)
                 ) {
-                    Row {
-                        Text(text = article.source, color = TextMuted, fontSize = 12.sp)
-                        Text(text = "  ·  ", color = TextMuted, fontSize = 12.sp)
-                        Text(text = formatDate(article.publishedAt), color = TextMuted, fontSize = 12.sp)
-                    }
-
-                    if (onBookmarkClick != null) {
-                        IconButton(
-                            onClick = onBookmarkClick,
-                            modifier = Modifier.size(28.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
-                                contentDescription = "북마크",
-                                tint = if (isBookmarked) Warning else TextMuted,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
+                    Icon(
+                        imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
+                        contentDescription = "북마크",
+                        tint = if (isBookmarked) Warning else TextMuted,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
         }

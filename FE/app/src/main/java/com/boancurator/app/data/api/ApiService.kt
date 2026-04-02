@@ -2,6 +2,7 @@ package com.boancurator.app.data.api
 
 import com.boancurator.app.data.model.AuthResponse
 import com.boancurator.app.data.model.Bookmark
+import com.boancurator.app.data.model.BookmarkView
 import com.boancurator.app.data.model.CardView
 import com.boancurator.app.data.model.GoogleAuthRequest
 import com.boancurator.app.data.model.PaginatedResponse
@@ -78,7 +79,7 @@ interface ApiService {
     suspend fun getBookmarks(
         @Query("offset") offset: Int = 0,
         @Query("limit") limit: Int = 20
-    ): PaginatedResponse
+    ): List<BookmarkView>
 
     @DELETE("v1/bookmarks/{bookmark_id}")
     suspend fun deleteBookmark(

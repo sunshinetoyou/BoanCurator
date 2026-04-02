@@ -9,7 +9,9 @@
       "Bash(D:/Android/Sdk/platform-tools/adb.exe install:*)",
       "Bash(D:/Android/Sdk/platform-tools/adb.exe shell:*)",
       "Bash(keytool -list -v -keystore __TRACKED_VAR__/.android/debug.keystore -alias androiddebugkey -storepass android)",
-      "Bash(curl -s \"https://bc-api.danyeon.cloud/v1/cardnews?offset=0&limit=1\")"
+      "Bash(curl -s \"https://bc-api.danyeon.cloud/v1/cardnews?offset=0&limit=1\")",
+      "Bash(python3 -c \"from datetime import datetime; print\\(datetime.fromtimestamp\\(1775126713\\)\\)\")",
+      "Bash(curl -s -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6Inllb25zdUBkYW5rb29rLmFjLmtyIiwiZXhwIjoxNzc1MTI2NzEzfQ.MaUyKn-2RB1LmxfslT6iwtZ5Le6uiHuXXvO5gh18HeU\" \"https://bc-api.danyeon.cloud/v1/bookmarks?offset=0&limit=5\")"
     ]
   }
 }

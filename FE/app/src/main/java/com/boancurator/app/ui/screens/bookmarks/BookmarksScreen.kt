@@ -42,6 +42,11 @@ fun BookmarksScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
+    // 탭 진입 시마다 새로고침
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        viewModel.loadBookmarks()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()

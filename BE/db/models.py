@@ -142,6 +142,8 @@ class BookmarkView(SQLModel):
     source: str
     url: str
     title: str
+    published_at: Optional[datetime] = None
+    image_urls: Optional[List[str]] = None
     summary: str
     themes: List[str]
     level: Level

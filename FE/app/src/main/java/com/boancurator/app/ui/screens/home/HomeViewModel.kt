@@ -73,9 +73,11 @@ data class HomeUiState(
     val filtersExpanded: Boolean = false,
     // Sources extracted from data
     val availableSources: List<String> = emptyList(),
-    // Bookmarks
-    val bookmarkedUrls: Set<String> = emptySet()
-)
+    // Bookmarks: url -> bookmarkId
+    val bookmarkMap: Map<String, Int> = emptyMap()
+) {
+    val bookmarkedUrls: Set<String> get() = bookmarkMap.keys
+}
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -92,7 +94,22 @@ class HomeViewModel @Inject constructor(
     }
 
     init {
+        refreshAuthStatus()
         loadFromCacheThenSync()
+        loadBookmarkState()
+    }
+
+    private fun loadBookmarkState() {
+        viewModelScope.launch {
+            try {
+                val authenticated = authRepository.isAuthenticated()
+                _isAuthenticated = authenticated
+                if (!authenticated) return@launch
+                val bookmarks = bookmarkRepository.getBookmarks()
+                val map = bookmarks.associate { it.url to it.bookmarkId }
+                _uiState.value = _uiState.value.copy(bookmarkMap = map)
+            } catch (_: Exception) {}
+        }
     }
 
     /** 캐시 먼저 표시 -> API로 최신 데이터 동기화 */
@@ -122,26 +139,50 @@ class HomeViewModel @Inject constructor(
     }
 
     // === Bookmark ===
+    private var _isAuthenticated = false
+
+    private fun refreshAuthStatus() {
+        viewModelScope.launch {
+            _isAuthenticated = authRepository.isAuthenticated()
+        }
+    }
+
     /** @return true if bookmark toggled, false if not logged in */
     fun toggleBookmark(article: CardView): Boolean {
-        val hasToken = kotlinx.coroutines.runBlocking { authRepository.isAuthenticated() }
-        if (!hasToken) return false
+        if (!_isAuthenticated) return false
         val articleId = article.articleId ?: return false
 
-        val current = _uiState.value.bookmarkedUrls
-        if (article.url in current) {
-            _uiState.value = _uiState.value.copy(bookmarkedUrls = current - article.url)
-            // API 삭제는 bookmarkId가 필요하므로 일단 UI만 토글
-        } else {
-            _uiState.value = _uiState.value.copy(bookmarkedUrls = current + article.url)
+        val currentMap = _uiState.value.bookmarkMap
+        val existingBookmarkId = currentMap[article.url]
+
+        if (existingBookmarkId != null) {
+            // 북마크 해제 — 즉시 UI 반영 + 서버 삭제
+            _uiState.value = _uiState.value.copy(bookmarkMap = currentMap - article.url)
             viewModelScope.launch {
                 try {
-                    bookmarkRepository.createBookmark(articleId)
+                    bookmarkRepository.deleteBookmark(existingBookmarkId)
                 } catch (e: Exception) {
-                    Log.e("HomeVM", "Bookmark create failed", e)
+                    Log.e("HomeVM", "Bookmark delete failed", e)
                     // 실패 시 롤백
                     _uiState.value = _uiState.value.copy(
-                        bookmarkedUrls = _uiState.value.bookmarkedUrls - article.url
+                        bookmarkMap = _uiState.value.bookmarkMap + (article.url to existingBookmarkId)
+                    )
+                }
+            }
+        } else {
+            // 북마크 추가 — 즉시 UI 반영 + 서버 생성
+            _uiState.value = _uiState.value.copy(bookmarkMap = currentMap + (article.url to -1))
+            viewModelScope.launch {
+                try {
+                    val bookmark = bookmarkRepository.createBookmark(articleId)
+                    // 실제 bookmarkId로 업데이트
+                    _uiState.value = _uiState.value.copy(
+                        bookmarkMap = _uiState.value.bookmarkMap + (article.url to bookmark.id)
+                    )
+                } catch (e: Exception) {
+                    Log.e("HomeVM", "Bookmark create failed", e)
+                    _uiState.value = _uiState.value.copy(
+                        bookmarkMap = _uiState.value.bookmarkMap - article.url
                     )
                 }
             }
@@ -243,22 +284,32 @@ class HomeViewModel @Inject constructor(
     }
 
     fun refresh() {
-        _uiState.value = HomeUiState()
+        _uiState.value = _uiState.value.copy(
+            weekGroups = emptyList(),
+            offset = 0,
+            hasMore = true,
+            error = null
+        )
         loadYears()
-        loadArticles()
+        loadFromCacheThenSync()
+        loadBookmarkState()
     }
 
     private fun loadArticles() {
         _uiState.value = _uiState.value.copy(isLoading = true)
         viewModelScope.launch {
             try {
+                // API에서 최신 데이터
                 val response = articleRepository.getCardNews(offset = 0, limit = PAGE_SIZE)
-                // 기존 데이터와 병합 (URL 기준 중복 제거)
-                val existing = _uiState.value.allArticles
-                val newUrls = response.items.map { it.url }.toSet()
-                val merged = response.items + existing.filter { it.url !in newUrls }
-                val isFirstLoad = _uiState.value.weekGroups.isEmpty()
 
+                // Room 캐시에서 전체 데이터 읽기
+                val cached = try { articleRepository.getCachedArticles() } catch (_: Exception) { emptyList() }
+
+                // 병합: API 최신 + 캐시 (중복 제거)
+                val apiUrls = response.items.map { it.url }.toSet()
+                val merged = response.items + cached.filter { it.url !in apiUrls }
+
+                val isFirstLoad = _uiState.value.weekGroups.isEmpty()
                 _uiState.value = _uiState.value.copy(
                     allArticles = merged,
                     weekGroups = if (isFirstLoad) emptyList() else _uiState.value.weekGroups,
@@ -271,7 +322,6 @@ class HomeViewModel @Inject constructor(
                 rebuildGroups()
                 updateYearsFromData()
             } catch (e: Exception) {
-                // API 실패해도 캐시 데이터가 있으면 표시 유지
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = if (_uiState.value.allArticles.isEmpty()) e.message else null

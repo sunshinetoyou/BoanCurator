@@ -29,11 +29,14 @@ class BookmarksViewModel @Inject constructor(
     val uiState: StateFlow<BookmarksUiState> = _uiState.asStateFlow()
 
     init {
+        checkAndLoad()
+    }
+
+    private fun checkAndLoad() {
         viewModelScope.launch {
-            authRepository.isLoggedIn.collect { loggedIn ->
-                _uiState.value = _uiState.value.copy(isLoggedIn = loggedIn)
-                if (loggedIn) loadBookmarks()
-            }
+            val loggedIn = authRepository.isAuthenticated()
+            _uiState.value = _uiState.value.copy(isLoggedIn = loggedIn)
+            if (loggedIn) loadBookmarks()
         }
     }
 
@@ -41,9 +44,9 @@ class BookmarksViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(isLoading = true)
         viewModelScope.launch {
             try {
-                val response = bookmarkRepository.getBookmarks()
+                val cards = bookmarkRepository.getBookmarkedCards()
                 _uiState.value = _uiState.value.copy(
-                    articles = response.items,
+                    articles = cards,
                     isLoading = false,
                     error = null
                 )

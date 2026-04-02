@@ -39,6 +39,9 @@ jobs:
         with:
           context: ./BE
           push: true
+          build-args: |
+            BUILD_TAG=${{ github.sha }}
+            BUILD_TIME=${{ github.event.head_commit.timestamp }}
           tags: |
             soo1278/boancurator-api:latest
             soo1278/boancurator-api:${{ github.sha }}
