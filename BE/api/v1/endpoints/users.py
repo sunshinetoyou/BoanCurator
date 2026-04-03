@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 from sqlmodel import Session
 
 from api.deps import get_current_user
@@ -27,8 +27,8 @@ class ExpertiseUpdateRequest(BaseModel):
 
 
 class ProfileUpdateRequest(BaseModel):
-    username: str | None = None
-    profile_image: str | None = None
+    username: str | None = Field(None, min_length=1, max_length=100)
+    profile_image: str | None = Field(None, max_length=2048, pattern=r'^https?://.+$')
 
 
 @router.get("/users/me")

@@ -29,9 +29,9 @@ app.add_middleware(
     allow_origins=origins,
     allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
-    allow_methods=["POST", "GET", "DELETE"],
-    allow_headers=["*"],
-    max_age=100,
+    allow_methods=["POST", "GET", "DELETE", "PUT"],
+    allow_headers=["Content-Type", "Authorization"],
+    max_age=600,
 )
 
 BUILD_TAG = os.getenv("BUILD_TAG", "local")[:7]

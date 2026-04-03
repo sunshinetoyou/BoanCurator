@@ -17,8 +17,8 @@ def read_dashboard(
     user: Optional[User] = Depends(get_optional_user),
     category: Optional[Category] = Query(default=None),
     level: Optional[Level] = Query(default=None),
-    offset: int = Query(default=0, ge=0),
-    limit: int = Query(default=20, le=100),
+    offset: int = Query(default=0, ge=0, le=100000),
+    limit: int = Query(default=20, ge=1, le=100),
 ):
     return get_card_view_list(
         session=session,

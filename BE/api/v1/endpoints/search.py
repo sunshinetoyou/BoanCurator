@@ -13,8 +13,8 @@ router = APIRouter()
 
 @router.get("/search/semantic", response_model=List[CardView])
 def semantic_search(
-    q: str = Query(..., min_length=2, description="검색 쿼리"),
-    n: int = Query(default=10, le=50),
+    q: str = Query(..., min_length=2, max_length=500, description="검색 쿼리"),
+    n: int = Query(default=10, ge=1, le=50),
     level: Optional[str] = Query(default=None),
     category: Optional[str] = Query(default=None),
     session: Session = Depends(get_session),

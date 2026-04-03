@@ -43,9 +43,31 @@ _MIME_MAP = {
 }
 
 
+def _is_safe_image_url(url: str) -> bool:
+    """이미지 URL이 내부 네트워크가 아닌지 검증"""
+    import ipaddress
+    import socket
+    from urllib.parse import urlparse
+
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            return False
+        hostname = parsed.hostname or ""
+        if hostname in ("localhost", "0.0.0.0", ""):
+            return False
+        resolved = socket.gethostbyname(hostname)
+        ip = ipaddress.ip_address(resolved)
+        return ip.is_global
+    except Exception:
+        return False
+
+
 def _download_image_bytes(url: str) -> tuple[bytes, str] | None:
     """이미지 URL에서 바이트를 다운로드합니다. (임시, 메모리에서만 사용)"""
     try:
+        if not _is_safe_image_url(url):
+            return None
         res = requests.get(url, timeout=5, headers={
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
         })
