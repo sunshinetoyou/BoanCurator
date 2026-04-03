@@ -4,8 +4,8 @@ from .sser import BoanNewsScraper, GeekNewsScraper, S2WScraper
 from .rsser import RSSGenericScraper
 
 
-def get_all_scrapers():
-    """활성 상태의 모든 스크래퍼 인스턴스를 반환합니다."""
+def get_system_scrapers():
+    """기본 내장 스크래퍼 인스턴스 목록"""
     return [
         # ── 특화 스크래퍼 (sser) ──
         BoanNewsScraper(
@@ -77,3 +77,32 @@ def get_all_scrapers():
             content_selector="div.be__contents",
         ),
     ]
+
+
+def get_custom_scrapers(session) -> list:
+    """DB에서 활성화된 커스텀 소스를 로드하여 RSSGenericScraper 인스턴스 생성"""
+    from sqlmodel import select
+    from db.models import CustomSource
+
+    sources = session.exec(
+        select(CustomSource).where(CustomSource.enabled == True)
+    ).all()
+
+    scrapers = []
+    for src in sources:
+        scrapers.append(RSSGenericScraper(
+            url=src.url,
+            period=src.period,
+            source_name=src.source_name,
+            content_selector=src.content_selector,
+            has_full_content=src.has_full_content,
+        ))
+    return scrapers
+
+
+def get_all_scrapers(session=None):
+    """시스템 + 커스텀 스크래퍼 전체 목록"""
+    scrapers = get_system_scrapers()
+    if session:
+        scrapers.extend(get_custom_scrapers(session))
+    return scrapers

@@ -113,6 +113,21 @@ class PaginatedResponse(SQLModel):
     has_more: bool
 
 
+# ── 커스텀 소스 ──
+
+class CustomSource(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    url: str = Field(index=True, unique=True)
+    source_name: str
+    content_selector: Optional[str] = None
+    has_full_content: bool = True
+    period: int = 10800
+    enabled: bool = True
+    last_error: Optional[str] = None
+    last_scraped_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.now)
+
+
 # ── 사용자 및 북마크 ──
 
 class User(SQLModel, table=True):
