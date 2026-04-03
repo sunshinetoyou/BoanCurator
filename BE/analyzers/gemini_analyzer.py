@@ -6,7 +6,7 @@ from google.genai import types
 
 from .base import BaseAnalyzer
 from config import settings
-from db.models import Article, AnalysisData, Category, Theme, Level, SECURITY_DOMAINS, DOMAIN_WEIGHTS
+from db.models import Article, AnalysisData, Category, Theme, Level, SECURITY_DOMAINS
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,8 @@ class GeminiAnalyzer(BaseAnalyzer):
         categories = [c.value for c in Category]
         themes = [t.value for t in Theme]
 
+        levels = [l.value for l in Level]
+
         system_prompt = f"""당신은 IT/보안 전문 뉴스 분석가입니다. 아래 지침에 따라 뉴스 본문을 분석하여 오직 유효한 JSON만 출력하세요.
 
         [지침]
@@ -43,14 +45,18 @@ class GeminiAnalyzer(BaseAnalyzer):
         2. Themes: 다음 리스트 중 관련 있는 항목을 모두 선택하세요(최대 3개): {themes}
         3. Summary: 뉴스 본문을 한국어 1문장으로 핵심만 요약하세요.
         4. Technical Keywords: 핵심 기술 용어를 추출하세요(최대 3개).
-        5. Domain Scores: 기사의 기술적 깊이를 아래 6개 도메인 축에 대해 0~5 정수로 평가하세요.
+        5. Level: 기사의 기술적 깊이를 독자 수준 기준으로 판단하세요. 반드시 다음 중 하나: {levels}
+           - Low: 보안/IT 비전문가도 이해 가능. 개념 소개, 뉴스 단신, 정책 변경, 이벤트 소식.
+           - Medium: 실무 경험이 있는 중급자 대상. 설정 가이드, 사고 분석, 기술 비교, 모범 사례.
+           - High: 깊은 전문 지식 필요. 취약점 PoC, exploit 코드, 리버싱 분석, 심층 연구 보고서.
+        6. Domain Scores: 기사가 다루는 분야를 아래 6개 도메인 축에 대해 0~5 정수로 평가하세요.
            - network_infra: 네트워크/인프라 보안 (방화벽, IDS/IPS, 네트워크 포렌식 등)
            - malware_vuln: 악성코드/취약점 분석 (CVE, 익스플로잇, 리버스엔지니어링 등)
            - cloud_devsecops: 클라우드/DevSecOps (AWS/Azure/GCP 보안, CI/CD, 컨테이너 보안 등)
            - crypto_auth: 암호학/인증 (TLS, PKI, OAuth, 암호 프로토콜 등)
            - policy_compliance: 정책/컴플라이언스 (개인정보보호법, ISMS, 규제, 거버넌스 등)
            - general_it: 일반 IT/개발 (프로그래밍, OS, DB, 일반 IT 뉴스 등)
-           0 = 해당 도메인과 무관, 5 = 해당 도메인의 최고 수준 전문 지식 필요
+           0 = 해당 도메인과 무관, 5 = 해당 도메인과 매우 깊이 관련됨
 
         [출력 JSON 양식]
         {{
@@ -58,6 +64,7 @@ class GeminiAnalyzer(BaseAnalyzer):
             "themes": ["테마1", "테마2"],
             "summary": "한국어 요약",
             "technical_keywords": ["CVE-2024-...", "Buffer Overflow", "ROP chain"],
+            "level": "Low|Medium|High",
             "domain_scores": {{
                 "network_infra": 0,
                 "malware_vuln": 0,
@@ -80,29 +87,16 @@ class GeminiAnalyzer(BaseAnalyzer):
             for d in SECURITY_DOMAINS
         }
 
-        # 절대 난이도 도출 (보안 축 가중 평균)
-        weighted_sum = 0.0
-        weight_total = 0.0
-        for d in SECURITY_DOMAINS:
-            score = domain_scores.get(d, 0)
-            if score > 0:
-                w = DOMAIN_WEIGHTS.get(d, 1.0)
-                weighted_sum += score * w
-                weight_total += w
-        weighted_avg = weighted_sum / weight_total if weight_total > 0 else 0
-
-        if weighted_avg >= 3.5:
-            level = Level.High.value
-        elif weighted_avg >= 2.0:
-            level = Level.Medium.value
-        else:
-            level = Level.Low.value
+        # level: Gemini가 직접 판단
+        raw_level = result.get("level", "Medium")
+        if raw_level not in [l.value for l in Level]:
+            raw_level = Level.Medium.value
 
         return AnalysisData(
             category=result.get("category", Category.TECH.value),
             themes=result.get("themes", []),
             summary=result.get("summary", ""),
-            level=level,
+            level=raw_level,
             domain_scores=domain_scores,
             prompt_version=self.prompt_version,
             model=self.model_name,

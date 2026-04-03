@@ -19,16 +19,6 @@ SECURITY_DOMAINS = [
 
 DEFAULT_EXPERTISE = {d: 2 for d in SECURITY_DOMAINS}
 
-# 절대 난이도 산출용 도메인 가중치 (보안 핵심 축 높게)
-DOMAIN_WEIGHTS = {
-    "network_infra": 1.3,
-    "malware_vuln": 1.5,
-    "cloud_devsecops": 1.2,
-    "crypto_auth": 1.3,
-    "policy_compliance": 0.8,
-    "general_it": 0.5,
-}
-
 
 class Level(StrEnum):
     Low = "Low"
