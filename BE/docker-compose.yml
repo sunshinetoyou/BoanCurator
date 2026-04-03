@@ -23,7 +23,7 @@ services:
   api:
     build: .
     container_name: boan_api
-    command: uvicorn api.main:app --host 0.0.0.0 --port 11278
+    command: bash -c "alembic upgrade head && uvicorn api.main:app --host 0.0.0.0 --port 11278"
     ports:
       - "11278:11278"
     depends_on:
