@@ -3,6 +3,7 @@ from sqlmodel import Session, select, func
 from sqlalchemy import or_, and_, any_
 
 from .models import *
+from .models import DOMAIN_WEIGHTS
 from .difficulty import calculate_relative_difficulty, update_user_expertise
 
 from datetime import datetime
@@ -363,3 +364,34 @@ def get_user_stats(session: Session, user_id: int) -> dict:
         "bookmark_count": bookmark_count,
         "domain_distribution": domain_distribution,
     }
+
+
+def recalculate_all_levels(session: Session) -> dict:
+    """기존 분석 데이터의 level을 domain_scores 기반 가중 평균으로 재계산"""
+    rows = session.exec(select(Analysis).where(Analysis.domain_scores.isnot(None))).all()
+
+    counts = {"High": 0, "Medium": 0, "Low": 0}
+    for analysis in rows:
+        weighted_sum = 0.0
+        weight_total = 0.0
+        for d in SECURITY_DOMAINS:
+            score = analysis.domain_scores.get(d, 0)
+            if score > 0:
+                w = DOMAIN_WEIGHTS.get(d, 1.0)
+                weighted_sum += score * w
+                weight_total += w
+        weighted_avg = weighted_sum / weight_total if weight_total > 0 else 0
+
+        if weighted_avg >= 3.5:
+            new_level = Level.High.value
+        elif weighted_avg >= 2.0:
+            new_level = Level.Medium.value
+        else:
+            new_level = Level.Low.value
+
+        analysis.level = new_level
+        session.add(analysis)
+        counts[new_level] += 1
+
+    session.commit()
+    return counts

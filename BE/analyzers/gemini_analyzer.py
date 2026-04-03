@@ -6,7 +6,7 @@ from google.genai import types
 
 from .base import BaseAnalyzer
 from config import settings
-from db.models import Article, AnalysisData, Category, Theme, Level, SECURITY_DOMAINS
+from db.models import Article, AnalysisData, Category, Theme, Level, SECURITY_DOMAINS, DOMAIN_WEIGHTS
 
 logger = logging.getLogger(__name__)
 
@@ -80,11 +80,20 @@ class GeminiAnalyzer(BaseAnalyzer):
             for d in SECURITY_DOMAINS
         }
 
-        # 레거시 level 자동 도출
-        max_score = max(domain_scores.values()) if domain_scores else 0
-        if max_score >= 4:
+        # 절대 난이도 도출 (보안 축 가중 평균)
+        weighted_sum = 0.0
+        weight_total = 0.0
+        for d in SECURITY_DOMAINS:
+            score = domain_scores.get(d, 0)
+            if score > 0:
+                w = DOMAIN_WEIGHTS.get(d, 1.0)
+                weighted_sum += score * w
+                weight_total += w
+        weighted_avg = weighted_sum / weight_total if weight_total > 0 else 0
+
+        if weighted_avg >= 3.5:
             level = Level.High.value
-        elif max_score >= 2:
+        elif weighted_avg >= 2.0:
             level = Level.Medium.value
         else:
             level = Level.Low.value
