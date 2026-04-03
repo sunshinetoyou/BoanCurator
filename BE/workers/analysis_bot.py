@@ -3,7 +3,7 @@ import time
 from sqlmodel import Session
 from db import services, engine, init_db
 from db.vector_store import store_embedding
-from analyzers import GeminiAnalyzer
+from analyzers import create_analyzer
 
 logging.basicConfig(
     level=logging.INFO,
@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 def run_analysis_bot():
     init_db()
-    analyzer = GeminiAnalyzer()
-    logger.info("Analysis Bot 가동 중 (Gemini API)...")
+    analyzer = create_analyzer()
+    logger.info(f"Analysis Bot 가동 중 ({type(analyzer).__name__})...")
 
     while True:
         with Session(engine) as session:

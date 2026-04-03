@@ -131,6 +131,39 @@ def get_card_view_list(
     )
 
 
+def get_card_views_by_ids(
+    session: Session,
+    article_ids: list[int],
+    user_expertise: Optional[dict] = None,
+) -> list[CardView]:
+    """article_id 목록으로 CardView 조회 (입력 순서 유지)"""
+    if not article_ids:
+        return []
+
+    statement = select(
+        Article.id.label("article_id"),
+        Article.source, Article.url, Article.title, Article.published_at, Article.image_urls,
+        Analysis.summary, Analysis.themes, Analysis.level, Analysis.category,
+        Analysis.domain_scores,
+    ).join(Analysis, Article.id == Analysis.article_id).where(
+        Article.id.in_(article_ids)
+    )
+    rows = session.exec(statement).all()
+
+    # ID → CardView 매핑
+    card_map = {}
+    for row in rows:
+        card = CardView.model_validate(row)
+        if user_expertise and card.domain_scores:
+            card.relative_difficulty = calculate_relative_difficulty(
+                card.level, card.domain_scores, user_expertise
+            )
+        card_map[card.article_id] = card
+
+    # 입력 순서(distance 순) 유지
+    return [card_map[aid] for aid in article_ids if aid in card_map]
+
+
 # ── 테마 검색 ──
 
 def _build_theme_search_query(req: ThemeSearchRequest, mode: str):

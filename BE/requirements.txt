@@ -10,3 +10,4 @@ google-genai
 chromadb
 python-dateutil
 python-jose[cryptography]
+anthropic
