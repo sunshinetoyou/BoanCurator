@@ -137,6 +137,7 @@ class User(SQLModel, table=True):
     username: str
     profile_image: Optional[str] = None
     expertise: dict = Field(default_factory=lambda: dict(DEFAULT_EXPERTISE), sa_column=Column(JSON))
+    level_preference: float = Field(default=3.0)
     created_at: datetime = Field(default_factory=datetime.now)
     bookmarks: List["Bookmark"] = Relationship(back_populates="user")
 
@@ -149,6 +150,14 @@ class Bookmark(SQLModel, table=True):
 
     user: Optional[User] = Relationship(back_populates="bookmarks")
     article: Optional[Article] = Relationship()
+
+
+class ArticleRating(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True)
+    article_id: int = Field(foreign_key="article.id", index=True)
+    rating: int  # 1=좋아요, -1=싫어요
+    created_at: datetime = Field(default_factory=datetime.now)
 
 
 class BookmarkView(SQLModel):

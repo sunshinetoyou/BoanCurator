@@ -11,12 +11,11 @@ from db.difficulty import calculate_relative_difficulty
 router = APIRouter()
 
 
-def _get_target_levels(expertise: dict) -> list[str]:
-    """유저 expertise 평균 → 적정 level 범위"""
-    avg = sum(expertise.values()) / len(expertise) if expertise else 2
-    if avg < 2:
+def _get_target_levels(level_preference: float) -> list[str]:
+    """Elo 기반 level_preference → 적정 level 범위"""
+    if level_preference < 2.0:
         return ["Low", "Medium"]
-    elif avg < 3.5:
+    elif level_preference < 4.0:
         return ["Low", "Medium", "High"]
     return ["Medium", "High"]
 
@@ -37,7 +36,7 @@ def get_recommendations(
     bookmarks = services.get_user_bookmarks(session, user.id, offset=0, limit=10)
 
     # 적정 level 범위
-    target_levels = _get_target_levels(user.expertise)
+    target_levels = _get_target_levels(user.level_preference)
 
     if not bookmarks:
         # 북마크 없으면 expertise 높은 도메인 키워드로 검색
@@ -69,7 +68,7 @@ def get_recommendations(
         if primary:
             domain_scores[primary] = 3  # 근사값
         r["relative_difficulty"] = calculate_relative_difficulty(
-            level, domain_scores, user.expertise
+            level, domain_scores, user.expertise, user.level_preference
         )
 
     results.sort(key=lambda r: r["domain_match"], reverse=True)

@@ -27,6 +27,7 @@ def read_dashboard(
         offset=offset,
         limit=limit,
         user_expertise=user.expertise if user else None,
+        level_preference=user.level_preference if user else 3.0,
     )
 
 
