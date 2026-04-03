@@ -179,7 +179,7 @@ def list_sources(session: Session = Depends(get_session)):
     from scrapers.registry import get_system_scrapers
 
     system = [
-        {"type": "system", "source_name": s.source_name, "url": s.url, "period": s.period}
+        {"type": "system", "source_name": getattr(s, "source_name", s.__class__.__name__), "url": s.url, "period": s.period}
         for s in get_system_scrapers()
     ]
 
