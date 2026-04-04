@@ -160,6 +160,34 @@ class ArticleRating(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.now)
 
 
+# ── 키워드 알림 ──
+
+class KeywordAlert(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True)
+    keyword: str
+    embedding_id: str
+    created_at: datetime = Field(default_factory=datetime.now)
+
+
+class NotificationLog(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True)
+    article_id: int = Field(foreign_key="article.id", index=True)
+    keyword_alert_id: int = Field(foreign_key="keywordalert.id")
+    sent_at: datetime = Field(default_factory=datetime.now)
+
+
+class UserNotificationSettings(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", unique=True, index=True)
+    match_preset: str = Field(default="normal")  # strict/normal/loose
+    top_n: int = Field(default=3, ge=1, le=5)
+    daily_limit: int = Field(default=5, ge=1, le=20)
+    mode: str = Field(default="realtime")  # realtime/daily
+    fcm_token: Optional[str] = None
+
+
 class BookmarkView(SQLModel):
     bookmark_id: int
     article_id: int

@@ -60,6 +60,21 @@ services:
     volumes:
       - chroma_data:/app/chroma_data
 
+  # Notification Worker (키워드 매칭 + 푸시 알림)
+  notification_worker:
+    build: .
+    container_name: boan_notifier
+    command: python -m workers.notification_bot
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PW}@db:5432/bc_db
+      GEMINI_API_KEYS: ${GEMINI_API_KEYS}
+      FCM_SERVER_KEY: ${FCM_SERVER_KEY:-}
+    volumes:
+      - chroma_data:/app/chroma_data
+
   # Watchtower (Docker 이미지 자동 업데이트)
   watchtower:
     image: containrrr/watchtower

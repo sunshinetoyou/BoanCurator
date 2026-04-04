@@ -29,8 +29,14 @@ def _rotate_genai_key(base_delay: float = 3.0):
     time.sleep(delay)
 
 _chroma_client = chromadb.PersistentClient(path="./chroma_data")
+
 _collection = _chroma_client.get_or_create_collection(
     name="article_embeddings",
+    metadata={"hnsw:space": "cosine"},
+
+)
+_keyword_collection = _chroma_client.get_or_create_collection(
+    name="keyword_embeddings",
     metadata={"hnsw:space": "cosine"},
 )
 
@@ -234,3 +240,63 @@ def batch_embed_existing(session) -> int:
 
     logger.info(f"백필 완료: {count}건 임베딩 생성")
     return count
+
+
+# ── 키워드 시맨틱 트래킹 ──
+
+def store_keyword_embedding(keyword_id: str, text: str, user_id: int) -> None:
+    """키워드 텍스트를 임베딩하여 keyword_embeddings 컬렉션에 저장"""
+    existing = _keyword_collection.get(ids=[keyword_id])
+    if existing and existing["ids"]:
+        return
+
+    try:
+        embedding = _embed_content(text)
+        _keyword_collection.add(
+            ids=[keyword_id],
+            embeddings=[embedding],
+            metadatas=[{"user_id": user_id, "keyword": text}],
+            documents=[text],
+        )
+        logger.info(f"키워드 임베딩 저장: {keyword_id} ({text})")
+    except Exception as e:
+        logger.error(f"키워드 임베딩 실패 ({keyword_id}): {e}")
+
+
+def delete_keyword_embedding(keyword_id: str) -> None:
+    """keyword_embeddings에서 키워드 임베딩 삭제"""
+    try:
+        _keyword_collection.delete(ids=[keyword_id])
+        logger.info(f"키워드 임베딩 삭제: {keyword_id}")
+    except Exception as e:
+        logger.error(f"키워드 임베딩 삭제 실패 ({keyword_id}): {e}")
+
+
+def match_article_to_keywords(
+    query_text: str,
+    user_id: int,
+    top_n: int = 3,
+) -> list[dict]:
+    """기사 텍스트와 유저의 키워드들 간 시맨틱 매칭.
+    distance가 작을수록 관련도 높음."""
+    try:
+        query_embedding = _embed_content(query_text)
+        results = _keyword_collection.query(
+            query_embeddings=[query_embedding],
+            n_results=top_n,
+            where={"user_id": user_id},
+            include=["documents", "metadatas", "distances"],
+        )
+
+        items = []
+        for i in range(len(results["ids"][0])):
+            items.append({
+                "keyword_id": results["ids"][0][i],
+                "keyword": results["documents"][0][i],
+                "distance": results["distances"][0][i],
+                "metadata": results["metadatas"][0][i],
+            })
+        return items
+    except Exception as e:
+        logger.error(f"키워드 매칭 실패 (user_id={user_id}): {e}")
+        return []

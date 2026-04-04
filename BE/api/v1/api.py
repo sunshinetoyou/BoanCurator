@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from api.v1.endpoints import auth, cardnews, searching, search, bookmarks, recommendations, users, sources, ratings
+from api.v1.endpoints import auth, cardnews, searching, search, bookmarks, recommendations, users, sources, ratings, keywords, notifications
 
 api_router = APIRouter()
 
@@ -12,3 +12,5 @@ api_router.include_router(bookmarks.router, tags=["Bookmarks"])
 api_router.include_router(recommendations.router, tags=["Recommendations"])
 api_router.include_router(sources.router, tags=["Sources"])
 api_router.include_router(ratings.router, tags=["Ratings"])
+api_router.include_router(keywords.router, tags=["Keywords"])
+api_router.include_router(notifications.router, tags=["Notifications"])

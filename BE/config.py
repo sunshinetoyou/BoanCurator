@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     # 임베딩
     embedding_model: str = ""
 
+    # FCM 푸시 알림 (없으면 알림 비활성화)
+    fcm_server_key: str = ""
+
     # Google OAuth
     google_client_id: str
     jwt_secret: str
