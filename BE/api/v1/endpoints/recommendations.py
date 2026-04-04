@@ -36,7 +36,7 @@ def get_recommendations(
     bookmarks = services.get_user_bookmarks(session, user.id, offset=0, limit=10)
 
     # 적정 level 범위
-    target_levels = _get_target_levels(user.level_preference)
+    target_levels = _get_target_levels(user.level_preference or 3.0)
 
     if not bookmarks:
         # 북마크 없으면 expertise 높은 도메인 키워드로 검색
@@ -68,7 +68,7 @@ def get_recommendations(
         if primary:
             domain_scores[primary] = 3  # 근사값
         r["relative_difficulty"] = calculate_relative_difficulty(
-            level, domain_scores, user.expertise, user.level_preference
+            level, domain_scores, user.expertise, user.level_preference or 3.0
         )
 
     results.sort(key=lambda r: r["domain_match"], reverse=True)

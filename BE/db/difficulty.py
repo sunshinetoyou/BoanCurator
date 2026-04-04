@@ -29,7 +29,7 @@ def calculate_relative_difficulty(
     domain_gap = level_score - domain_avg
 
     # Elo 기반 gap
-    elo_gap = level_score - level_preference
+    elo_gap = level_score - (level_preference or 3.0)
 
     # 결합 (Elo 비중 60%)
     combined_gap = 0.4 * domain_gap + 0.6 * elo_gap
