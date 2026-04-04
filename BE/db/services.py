@@ -171,6 +171,25 @@ def get_card_views_by_ids(
     return [card_map[aid] for aid in article_ids if aid in card_map]
 
 
+# ── 키워드 검색 (하이브리드용) ──
+
+def search_articles_by_keyword(session: Session, query: str, limit: int = 10) -> list[int]:
+    """title, summary에서 키워드 ILIKE 매칭 → article_id 리스트"""
+    statement = (
+        select(Article.id)
+        .join(Analysis, Article.id == Analysis.article_id)
+        .where(
+            or_(
+                Article.title.ilike(f"%{query}%"),
+                Analysis.summary.ilike(f"%{query}%"),
+            )
+        )
+        .order_by(Analysis.created_at.desc())
+        .limit(limit)
+    )
+    return list(session.exec(statement).all())
+
+
 # ── 테마 검색 ──
 
 def _build_theme_search_query(req: ThemeSearchRequest, mode: str):
