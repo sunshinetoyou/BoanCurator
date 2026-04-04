@@ -74,6 +74,34 @@ def list_keywords(
     ]
 
 
+@router.put("/keywords/{keyword_id}")
+def update_keyword(
+    keyword_id: int,
+    req: KeywordCreateRequest,
+    user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    """키워드 수정 (임베딩 재생성)"""
+    alert = session.exec(
+        select(KeywordAlert).where(
+            KeywordAlert.id == keyword_id,
+            KeywordAlert.user_id == user.id,
+        )
+    ).first()
+    if not alert:
+        raise HTTPException(status_code=404, detail="키워드를 찾을 수 없습니다")
+
+    # 기존 임베딩 삭제 → 새 임베딩 생성
+    delete_keyword_embedding(alert.embedding_id)
+    alert.keyword = req.keyword
+    session.add(alert)
+    session.commit()
+
+    store_keyword_embedding(alert.embedding_id, req.keyword, user_id=user.id)
+
+    return {"id": alert.id, "keyword": alert.keyword, "embedding_id": alert.embedding_id}
+
+
 @router.delete("/keywords/{keyword_id}")
 def delete_keyword(
     keyword_id: int,

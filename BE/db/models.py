@@ -137,6 +137,7 @@ class User(SQLModel, table=True):
     username: str
     profile_image: Optional[str] = None
     expertise: dict = Field(default_factory=lambda: dict(DEFAULT_EXPERTISE), sa_column=Column(JSON))
+    preferred_themes: Optional[List[str]] = Field(default=None, sa_column=Column(ARRAY(String)))
     level_preference: float = Field(default=3.0)
     created_at: datetime = Field(default_factory=datetime.now)
     bookmarks: List["Bookmark"] = Relationship(back_populates="user")
