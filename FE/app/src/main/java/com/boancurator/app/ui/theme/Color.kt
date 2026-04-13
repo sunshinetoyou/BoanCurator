@@ -10,6 +10,8 @@ val DarkCardBorder = Color(0xFF2D3748)
 
 // Accent
 val Cyan = Color(0xFF00D4FF)
+val CyanBright = Color(0xFF33DFFF)
+val CyanDimmed = Color(0xFF007A99)
 val CyanDark = Color(0xFF00A3CC)
 val NeonBlue = Color(0xFF7B61FF)
 val NeonBlueDark = Color(0xFF5A3FD6)

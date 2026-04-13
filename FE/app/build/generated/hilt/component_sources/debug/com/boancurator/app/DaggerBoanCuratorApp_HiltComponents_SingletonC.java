@@ -506,7 +506,7 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
           return (T) new FeedViewModel(singletonCImpl.articleRepositoryProvider.get(), singletonCImpl.authRepositoryProvider.get(), singletonCImpl.bookmarkRepositoryProvider.get(), singletonCImpl.bookmarkStateHolderProvider.get());
 
           case 2: // com.boancurator.app.ui.screens.home.HomeViewModel 
-          return (T) new HomeViewModel(singletonCImpl.articleRepositoryProvider.get(), singletonCImpl.bookmarkRepositoryProvider.get(), singletonCImpl.authRepositoryProvider.get());
+          return (T) new HomeViewModel(singletonCImpl.articleRepositoryProvider.get(), singletonCImpl.bookmarkRepositoryProvider.get(), singletonCImpl.authRepositoryProvider.get(), singletonCImpl.bookmarkStateHolderProvider.get());
 
           case 3: // com.boancurator.app.ui.screens.profile.ProfileViewModel 
           return (T) new ProfileViewModel(singletonCImpl.authRepositoryProvider.get(), singletonCImpl.keywordRepositoryProvider.get(), singletonCImpl.notificationRepositoryProvider.get(), singletonCImpl.sourceRepositoryProvider.get());

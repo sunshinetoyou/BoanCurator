@@ -56,6 +56,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PW}@db:5432/bc_db
+      ANALYSIS_ENGINE: ${ANALYSIS_ENGINE:-gemini}
       GEMINI_API_KEYS: ${GEMINI_API_KEYS}
     volumes:
       - chroma_data:/app/chroma_data

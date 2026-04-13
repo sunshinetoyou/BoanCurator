@@ -72,9 +72,10 @@ def get_article_by_url(session: Session, url: str):
 
 def get_next_article_to_analyze(session: Session) -> Optional[Article]:
     """분석(Analysis) 데이터가 없는 가장 오래된 기사 하나를 가져옵니다."""
+    analyzed_ids = select(Analysis.article_id)
     statement = (
         select(Article)
-        .where(~select(Analysis).where(Analysis.article_id == Article.id).exists())
+        .where(Article.id.not_in(analyzed_ids))
         .order_by(Article.published_at.asc())
         .limit(1)
     )

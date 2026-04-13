@@ -1,0 +1,2 @@
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.archive.ArchiveViewModel
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.archive.ArchiveViewModel

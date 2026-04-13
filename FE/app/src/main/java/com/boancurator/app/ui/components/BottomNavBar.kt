@@ -1,12 +1,12 @@
 package com.boancurator.app.ui.components
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.Article
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
@@ -35,7 +35,7 @@ data class BottomNavItem(
 
 val bottomNavItems = listOf(
     BottomNavItem(Screen.Feed, "피드", Icons.Filled.AutoAwesome, Icons.Outlined.AutoAwesome),
-    BottomNavItem(Screen.Articles, "전체기사", Icons.Filled.Article, Icons.Outlined.Article),
+    BottomNavItem(Screen.Articles, "저장소", Icons.Filled.FolderOpen, Icons.Outlined.FolderOpen),
     BottomNavItem(Screen.Search, "검색", Icons.Filled.Search, Icons.Outlined.Search),
     BottomNavItem(Screen.Profile, "프로필", Icons.Filled.Person, Icons.Outlined.Person)
 )

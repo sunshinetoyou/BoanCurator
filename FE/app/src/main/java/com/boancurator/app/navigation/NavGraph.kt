@@ -10,7 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.boancurator.app.ui.screens.article.ArticleDetailScreen
 import com.boancurator.app.ui.screens.feed.FeedScreen
-import com.boancurator.app.ui.screens.home.HomeRoute
+import com.boancurator.app.ui.screens.home.HomeScreen
 import com.boancurator.app.ui.screens.profile.ProfileRoute
 import com.boancurator.app.ui.screens.search.SearchScreen
 
@@ -42,7 +42,7 @@ fun NavGraph(
         }
 
         composable(Screen.Articles.route) {
-            HomeRoute()
+            HomeScreen(navController = navController)
         }
 
         composable(Screen.Search.route) {
