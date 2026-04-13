@@ -34,7 +34,8 @@ class Settings(BaseSettings):
     # Google OAuth
     google_client_id: str
     jwt_secret: str
-    jwt_expire_hours: int
+    jwt_expire_hours: int = 1  # Access token: 1시간
+    jwt_refresh_expire_days: int = 30  # Refresh token: 30일
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

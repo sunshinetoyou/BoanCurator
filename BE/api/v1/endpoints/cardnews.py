@@ -4,7 +4,8 @@ from sqlalchemy import extract, distinct
 from typing import List, Optional
 
 from db.connection import get_session
-from db.models import Article, User, PaginatedResponse, Category, Level
+from db.models import Article, User, Category, Level
+from schemas import PaginatedResponse
 from db.services import get_card_view_list, record_article_read
 from api.deps import get_optional_user
 

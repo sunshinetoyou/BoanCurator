@@ -54,14 +54,35 @@ import com.boancurator.app.ui.theme.TextMuted
 import com.boancurator.app.ui.theme.TextPrimary
 import com.boancurator.app.ui.theme.TextSecondary
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SearchScreen(
+fun SearchRoute(
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
+    SearchScreen(
+        uiState = uiState,
+        onQueryChanged = viewModel::onQueryChanged,
+        onSearch = viewModel::search,
+        onSearchModeChanged = viewModel::onSearchModeChanged,
+        onThemeSelected = viewModel::onThemeSelected,
+        onArticleClick = { article ->
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(article.url)))
+        }
+    )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun SearchScreen(
+    uiState: SearchUiState,
+    onQueryChanged: (String) -> Unit,
+    onSearch: () -> Unit,
+    onSearchModeChanged: (SearchMode) -> Unit,
+    onThemeSelected: (String) -> Unit,
+    onArticleClick: (CardView) -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -94,7 +115,7 @@ fun SearchScreen(
                 Tab(
                     selected = selectedTab == index,
                     onClick = {
-                        viewModel.onSearchModeChanged(
+                        onSearchModeChanged(
                             if (index == 0) SearchMode.SEMANTIC else SearchMode.THEME
                         )
                     },
@@ -109,7 +130,7 @@ fun SearchScreen(
             SearchMode.SEMANTIC -> {
                 TextField(
                     value = uiState.query,
-                    onValueChange = { viewModel.onQueryChanged(it) },
+                    onValueChange = onQueryChanged,
                     placeholder = { Text("보안 뉴스를 검색하세요...", color = TextMuted) },
                     leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = TextMuted) },
                     colors = TextFieldDefaults.colors(
@@ -124,11 +145,11 @@ fun SearchScreen(
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = { viewModel.search() }),
+                    keyboardActions = KeyboardActions(onSearch = { onSearch() }),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                SearchResults(uiState = uiState, context = context)
+                SearchResults(uiState = uiState, onArticleClick = onArticleClick)
             }
 
             SearchMode.THEME -> {
@@ -143,7 +164,7 @@ fun SearchScreen(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(if (isSelected) Cyan.copy(alpha = 0.15f) else DarkCard)
-                                .clickable { viewModel.onThemeSelected(theme) }
+                                .clickable { onThemeSelected(theme) }
                                 .padding(horizontal = 14.dp, vertical = 8.dp)
                         ) {
                             Text(
@@ -156,7 +177,7 @@ fun SearchScreen(
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                SearchResults(uiState = uiState, context = context)
+                SearchResults(uiState = uiState, onArticleClick = onArticleClick)
             }
         }
     }
@@ -165,7 +186,7 @@ fun SearchScreen(
 @Composable
 private fun SearchResults(
     uiState: SearchUiState,
-    context: android.content.Context
+    onArticleClick: (CardView) -> Unit,
 ) {
     when {
         uiState.isLoading -> {
@@ -191,10 +212,7 @@ private fun SearchResults(
                 items(uiState.results, key = { it.url }) { article ->
                     ArticleCard(
                         article = article,
-                        onClick = {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(article.url))
-                            context.startActivity(intent)
-                        }
+                        onClick = { onArticleClick(article) }
                     )
                 }
             }

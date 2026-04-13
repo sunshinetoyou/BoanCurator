@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlmodel import Session
 
@@ -5,6 +7,7 @@ from api.deps import get_current_user
 from db.connection import get_session
 from db.models import User
 from db import services
+from schemas import BookmarkView
 
 router = APIRouter()
 
@@ -20,7 +23,7 @@ def create_bookmark(
     return {"bookmark_id": bookmark.id, "article_id": bookmark.article_id}
 
 
-@router.get("/bookmarks")
+@router.get("/bookmarks", response_model=List[BookmarkView])
 def get_bookmarks(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=20, le=100),

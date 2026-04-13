@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.boancurator.app.BuildConfig
 import com.boancurator.app.data.api.ApiService
 import com.boancurator.app.data.api.AuthInterceptor
+import com.boancurator.app.data.api.TokenAuthenticator
 import com.boancurator.app.data.local.AppDatabase
 import com.boancurator.app.data.local.ArticleDao
 import com.boancurator.app.util.TokenManager
@@ -31,9 +32,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor,
+        tokenAuthenticator: TokenAuthenticator
+    ): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
+            .authenticator(tokenAuthenticator)
             .addInterceptor(
                 HttpLoggingInterceptor().apply {
                     level = if (BuildConfig.DEBUG)

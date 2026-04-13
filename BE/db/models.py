@@ -78,41 +78,6 @@ class Analysis(AnalysisData, table=True):
     article: Optional[Article] = Relationship(back_populates="analysis")
 
 
-# VIEW 설정
-class CardView(SQLModel):
-    article_id: Optional[int] = None
-    source: str
-    url: str
-    title: str
-    published_at: Optional[datetime] = None
-    image_urls: Optional[List[str]] = None
-
-    summary: str
-    themes: List[str]
-    level: Level
-    category: Category
-    domain_scores: Optional[dict] = None
-    relative_difficulty: Optional[RelativeDifficulty] = None
-
-    class Config:
-        from_attributes = True
-
-
-class ThemeSearchRequest(SQLModel):
-    search_type: int = 1
-    themes: List[Theme]
-    offset: int = 0
-    limit: int = 20
-
-
-class PaginatedResponse(SQLModel):
-    items: List[CardView]
-    total: int
-    offset: int
-    limit: int
-    has_more: bool
-
-
 # ── 커스텀 소스 ──
 
 class CustomSource(SQLModel, table=True):
@@ -189,21 +154,3 @@ class UserNotificationSettings(SQLModel, table=True):
     fcm_token: Optional[str] = None
 
 
-class BookmarkView(SQLModel):
-    bookmark_id: int
-    article_id: int
-    source: str
-    url: str
-    title: str
-    published_at: Optional[datetime] = None
-    image_urls: Optional[List[str]] = None
-    summary: str
-    themes: List[str]
-    level: Level
-    category: Category
-    domain_scores: Optional[dict] = None
-    relative_difficulty: Optional[RelativeDifficulty] = None
-    bookmarked_at: datetime
-
-    class Config:
-        from_attributes = True

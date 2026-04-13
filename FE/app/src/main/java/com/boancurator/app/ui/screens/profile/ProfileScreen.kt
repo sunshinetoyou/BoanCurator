@@ -63,33 +63,44 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
 
 @Composable
-fun ProfileScreen(
+fun ProfileRoute(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    val onGoogleSignIn: () -> Unit = {
-        scope.launch {
-            try {
-                val credentialManager = CredentialManager.create(context)
-                val signInOption = GetSignInWithGoogleOption.Builder(BuildConfig.GOOGLE_CLIENT_ID)
-                    .build()
+    ProfileScreen(
+        uiState = uiState,
+        onGoogleSignIn = {
+            scope.launch {
+                try {
+                    val credentialManager = CredentialManager.create(context)
+                    val signInOption = GetSignInWithGoogleOption.Builder(BuildConfig.GOOGLE_CLIENT_ID)
+                        .build()
 
-                val request = GetCredentialRequest.Builder()
-                    .addCredentialOption(signInOption)
-                    .build()
+                    val request = GetCredentialRequest.Builder()
+                        .addCredentialOption(signInOption)
+                        .build()
 
-                val result = credentialManager.getCredential(context, request)
-                val googleIdToken = GoogleIdTokenCredential.createFrom(result.credential.data)
-                viewModel.loginWithGoogle(googleIdToken.idToken)
-            } catch (e: Exception) {
-                Log.e("ProfileScreen", "Google Sign-In failed", e)
+                    val result = credentialManager.getCredential(context, request)
+                    val googleIdToken = GoogleIdTokenCredential.createFrom(result.credential.data)
+                    viewModel.loginWithGoogle(googleIdToken.idToken)
+                } catch (e: Exception) {
+                    Log.e("ProfileScreen", "Google Sign-In failed", e)
+                }
             }
-        }
-    }
+        },
+        onLogout = viewModel::logout
+    )
+}
 
+@Composable
+fun ProfileScreen(
+    uiState: ProfileUiState,
+    onGoogleSignIn: () -> Unit,
+    onLogout: () -> Unit,
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -111,7 +122,7 @@ fun ProfileScreen(
                     fontWeight = FontWeight.Bold
                 )
                 if (uiState.isLoggedIn) {
-                    IconButton(onClick = { viewModel.logout() }) {
+                    IconButton(onClick = onLogout) {
                         Icon(
                             Icons.AutoMirrored.Filled.Logout,
                             contentDescription = "로그아웃",
@@ -135,9 +146,9 @@ fun ProfileScreen(
                         modifier = Modifier.padding(20.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (uiState.user!!.picture != null) {
+                        if (uiState.user.picture != null) {
                             AsyncImage(
-                                model = uiState.user!!.picture,
+                                model = uiState.user.picture,
                                 contentDescription = "프로필 사진",
                                 modifier = Modifier
                                     .size(56.dp)
@@ -164,13 +175,13 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(
-                                text = uiState.user!!.name ?: "사용자",
+                                text = uiState.user.name ?: "사용자",
                                 color = TextPrimary,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                text = uiState.user!!.email,
+                                text = uiState.user.email,
                                 color = TextSecondary,
                                 fontSize = 14.sp
                             )
@@ -239,7 +250,7 @@ fun ProfileScreen(
                         if (uiState.error != null) {
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = uiState.error!!,
+                                text = uiState.error,
                                 color = com.boancurator.app.ui.theme.Error,
                                 fontSize = 13.sp
                             )

@@ -8,6 +8,7 @@ import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
 import com.boancurator.app.data.api.ApiService;
 import com.boancurator.app.data.api.AuthInterceptor;
+import com.boancurator.app.data.api.TokenAuthenticator;
 import com.boancurator.app.data.local.AppDatabase;
 import com.boancurator.app.data.local.ArticleDao;
 import com.boancurator.app.data.repository.ArticleRepository;
@@ -578,6 +579,8 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
 
     private Provider<AuthInterceptor> authInterceptorProvider;
 
+    private Provider<TokenAuthenticator> tokenAuthenticatorProvider;
+
     private Provider<OkHttpClient> provideOkHttpClientProvider;
 
     private Provider<Retrofit> provideRetrofitProvider;
@@ -604,14 +607,15 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
     private void initialize(final ApplicationContextModule applicationContextModuleParam) {
       this.provideTokenManagerProvider = DoubleCheck.provider(new SwitchingProvider<TokenManager>(singletonCImpl, 5));
       this.authInterceptorProvider = DoubleCheck.provider(new SwitchingProvider<AuthInterceptor>(singletonCImpl, 4));
+      this.tokenAuthenticatorProvider = DoubleCheck.provider(new SwitchingProvider<TokenAuthenticator>(singletonCImpl, 6));
       this.provideOkHttpClientProvider = DoubleCheck.provider(new SwitchingProvider<OkHttpClient>(singletonCImpl, 3));
       this.provideRetrofitProvider = DoubleCheck.provider(new SwitchingProvider<Retrofit>(singletonCImpl, 2));
       this.provideApiServiceProvider = DoubleCheck.provider(new SwitchingProvider<ApiService>(singletonCImpl, 1));
       this.bookmarkRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<BookmarkRepository>(singletonCImpl, 0));
-      this.authRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<AuthRepository>(singletonCImpl, 6));
-      this.provideDatabaseProvider = DoubleCheck.provider(new SwitchingProvider<AppDatabase>(singletonCImpl, 9));
-      this.provideArticleDaoProvider = DoubleCheck.provider(new SwitchingProvider<ArticleDao>(singletonCImpl, 8));
-      this.articleRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<ArticleRepository>(singletonCImpl, 7));
+      this.authRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<AuthRepository>(singletonCImpl, 7));
+      this.provideDatabaseProvider = DoubleCheck.provider(new SwitchingProvider<AppDatabase>(singletonCImpl, 10));
+      this.provideArticleDaoProvider = DoubleCheck.provider(new SwitchingProvider<ArticleDao>(singletonCImpl, 9));
+      this.articleRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<ArticleRepository>(singletonCImpl, 8));
     }
 
     @Override
@@ -657,7 +661,7 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
           return (T) AppModule_ProvideRetrofitFactory.provideRetrofit(singletonCImpl.provideOkHttpClientProvider.get());
 
           case 3: // okhttp3.OkHttpClient 
-          return (T) AppModule_ProvideOkHttpClientFactory.provideOkHttpClient(singletonCImpl.authInterceptorProvider.get());
+          return (T) AppModule_ProvideOkHttpClientFactory.provideOkHttpClient(singletonCImpl.authInterceptorProvider.get(), singletonCImpl.tokenAuthenticatorProvider.get());
 
           case 4: // com.boancurator.app.data.api.AuthInterceptor 
           return (T) new AuthInterceptor(singletonCImpl.provideTokenManagerProvider.get());
@@ -665,16 +669,19 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
           case 5: // com.boancurator.app.util.TokenManager 
           return (T) AppModule_ProvideTokenManagerFactory.provideTokenManager(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
-          case 6: // com.boancurator.app.data.repository.AuthRepository 
+          case 6: // com.boancurator.app.data.api.TokenAuthenticator 
+          return (T) new TokenAuthenticator(singletonCImpl.provideTokenManagerProvider.get());
+
+          case 7: // com.boancurator.app.data.repository.AuthRepository 
           return (T) new AuthRepository(singletonCImpl.provideApiServiceProvider.get(), singletonCImpl.provideTokenManagerProvider.get());
 
-          case 7: // com.boancurator.app.data.repository.ArticleRepository 
+          case 8: // com.boancurator.app.data.repository.ArticleRepository 
           return (T) new ArticleRepository(singletonCImpl.provideApiServiceProvider.get(), singletonCImpl.provideArticleDaoProvider.get());
 
-          case 8: // com.boancurator.app.data.local.ArticleDao 
+          case 9: // com.boancurator.app.data.local.ArticleDao 
           return (T) AppModule_ProvideArticleDaoFactory.provideArticleDao(singletonCImpl.provideDatabaseProvider.get());
 
-          case 9: // com.boancurator.app.data.local.AppDatabase 
+          case 10: // com.boancurator.app.data.local.AppDatabase 
           return (T) AppModule_ProvideDatabaseFactory.provideDatabase(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
           default: throw new AssertionError(id);

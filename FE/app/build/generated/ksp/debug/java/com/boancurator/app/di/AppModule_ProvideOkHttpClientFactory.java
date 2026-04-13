@@ -1,6 +1,7 @@
 package com.boancurator.app.di;
 
 import com.boancurator.app.data.api.AuthInterceptor;
+import com.boancurator.app.data.api.TokenAuthenticator;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.Preconditions;
@@ -29,21 +30,27 @@ import okhttp3.OkHttpClient;
 public final class AppModule_ProvideOkHttpClientFactory implements Factory<OkHttpClient> {
   private final Provider<AuthInterceptor> authInterceptorProvider;
 
-  public AppModule_ProvideOkHttpClientFactory(Provider<AuthInterceptor> authInterceptorProvider) {
+  private final Provider<TokenAuthenticator> tokenAuthenticatorProvider;
+
+  public AppModule_ProvideOkHttpClientFactory(Provider<AuthInterceptor> authInterceptorProvider,
+      Provider<TokenAuthenticator> tokenAuthenticatorProvider) {
     this.authInterceptorProvider = authInterceptorProvider;
+    this.tokenAuthenticatorProvider = tokenAuthenticatorProvider;
   }
 
   @Override
   public OkHttpClient get() {
-    return provideOkHttpClient(authInterceptorProvider.get());
+    return provideOkHttpClient(authInterceptorProvider.get(), tokenAuthenticatorProvider.get());
   }
 
   public static AppModule_ProvideOkHttpClientFactory create(
-      Provider<AuthInterceptor> authInterceptorProvider) {
-    return new AppModule_ProvideOkHttpClientFactory(authInterceptorProvider);
+      Provider<AuthInterceptor> authInterceptorProvider,
+      Provider<TokenAuthenticator> tokenAuthenticatorProvider) {
+    return new AppModule_ProvideOkHttpClientFactory(authInterceptorProvider, tokenAuthenticatorProvider);
   }
 
-  public static OkHttpClient provideOkHttpClient(AuthInterceptor authInterceptor) {
-    return Preconditions.checkNotNullFromProvides(AppModule.INSTANCE.provideOkHttpClient(authInterceptor));
+  public static OkHttpClient provideOkHttpClient(AuthInterceptor authInterceptor,
+      TokenAuthenticator tokenAuthenticator) {
+    return Preconditions.checkNotNullFromProvides(AppModule.INSTANCE.provideOkHttpClient(authInterceptor, tokenAuthenticator));
   }
 }

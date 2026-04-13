@@ -5,10 +5,10 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.boancurator.app.ui.screens.bookmarks.BookmarksScreen
-import com.boancurator.app.ui.screens.home.HomeScreen
-import com.boancurator.app.ui.screens.profile.ProfileScreen
-import com.boancurator.app.ui.screens.search.SearchScreen
+import com.boancurator.app.ui.screens.bookmarks.BookmarksRoute
+import com.boancurator.app.ui.screens.home.HomeRoute
+import com.boancurator.app.ui.screens.profile.ProfileRoute
+import com.boancurator.app.ui.screens.search.SearchRoute
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
@@ -28,19 +28,19 @@ fun NavGraph(
         modifier = modifier
     ) {
         composable(Screen.Home.route) {
-            HomeScreen()
+            HomeRoute()
         }
 
         composable(Screen.Search.route) {
-            SearchScreen()
+            SearchRoute()
         }
 
         composable(Screen.Bookmarks.route) {
-            BookmarksScreen()
+            BookmarksRoute()
         }
 
         composable(Screen.Profile.route) {
-            ProfileScreen()
+            ProfileRoute()
         }
     }
 }

@@ -34,9 +34,9 @@ data class BottomNavItem(
 )
 
 val bottomNavItems = listOf(
-    BottomNavItem(Screen.Home, "홈", Icons.Filled.Home, Icons.Outlined.Home),
+    BottomNavItem(Screen.Home, "피드", Icons.Filled.Home, Icons.Outlined.Home),
     BottomNavItem(Screen.Search, "검색", Icons.Filled.Search, Icons.Outlined.Search),
-    BottomNavItem(Screen.Bookmarks, "북마크", Icons.Filled.Bookmark, Icons.Outlined.BookmarkBorder),
+    BottomNavItem(Screen.Bookmarks, "저장소", Icons.Filled.Bookmark, Icons.Outlined.BookmarkBorder),
     BottomNavItem(Screen.Profile, "프로필", Icons.Filled.Person, Icons.Outlined.Person)
 )
 

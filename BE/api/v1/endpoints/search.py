@@ -3,7 +3,8 @@ from sqlmodel import Session
 from typing import Optional, List
 
 from db.connection import get_session
-from db.models import CardView, User
+from db.models import User
+from schemas import CardView
 from db.vector_store import search_similar, search_similar_by_id
 from db.services import get_card_views_by_ids, search_articles_by_keyword
 from api.deps import get_optional_user

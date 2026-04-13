@@ -3,7 +3,8 @@ from sqlmodel import Session
 from typing import List
 
 from db.connection import get_session
-from db.models import Theme, ThemeSearchRequest, PaginatedResponse
+from db.models import Theme
+from schemas import PaginatedResponse, ThemeSearchRequest
 from db.services import search_articles_by_all_themes, search_articles_by_any_themes, get_active_themes
 
 router = APIRouter()

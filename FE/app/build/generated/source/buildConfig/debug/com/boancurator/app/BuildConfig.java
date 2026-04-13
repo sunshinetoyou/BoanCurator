@@ -12,5 +12,5 @@ public final class BuildConfig {
   // Field from default config.
   public static final String API_BASE_URL = "https://bc-api.danyeon.cloud";
   // Field from default config.
-  public static final String GOOGLE_CLIENT_ID = "64869702608-0l37pst7bp8oge4fa46vm5pobc83p7te.apps.googleusercontent.com";
+  public static final String GOOGLE_CLIENT_ID = "1038793714746-1fhbiipe6qbrad27v1l82p6g2b9u4lv4.apps.googleusercontent.com";
 }

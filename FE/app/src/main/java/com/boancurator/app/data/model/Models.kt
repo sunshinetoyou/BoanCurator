@@ -82,6 +82,7 @@ data class GoogleAuthRequest(
 
 data class AuthResponse(
     @SerializedName("access_token") val accessToken: String,
+    @SerializedName("refresh_token") val refreshToken: String,
     @SerializedName("token_type") val tokenType: String,
     val user: User?
 )
@@ -91,8 +92,8 @@ data class AuthResponse(
 data class User(
     val id: Int?,
     val email: String,
-    val name: String?,
-    val picture: String?
+    @SerializedName("username") val name: String?,
+    @SerializedName("profile_image") val picture: String?
 )
 
 // --- Bookmark ---

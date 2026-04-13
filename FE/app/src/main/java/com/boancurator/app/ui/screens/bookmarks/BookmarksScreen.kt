@@ -20,6 +20,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.boancurator.app.data.model.CardView
 import com.boancurator.app.ui.components.ArticleCard
 import com.boancurator.app.ui.theme.Cyan
 import com.boancurator.app.ui.theme.DarkBackground
@@ -36,24 +38,36 @@ import com.boancurator.app.ui.theme.TextMuted
 import com.boancurator.app.ui.theme.TextPrimary
 
 @Composable
-fun BookmarksScreen(
+fun BookmarksRoute(
     viewModel: BookmarksViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    // 탭 진입 시마다 새로고침
-    androidx.compose.runtime.LaunchedEffect(Unit) {
+    LaunchedEffect(Unit) {
         viewModel.loadBookmarks()
     }
 
+    BookmarksScreen(
+        uiState = uiState,
+        onArticleClick = { article ->
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(article.url)))
+        }
+    )
+}
+
+@Composable
+fun BookmarksScreen(
+    uiState: BookmarksUiState,
+    onArticleClick: (CardView) -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBackground)
     ) {
         Text(
-            text = "북마크",
+            text = "저장소",
             color = TextPrimary,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
@@ -98,10 +112,7 @@ fun BookmarksScreen(
                     items(items = uiState.articles, key = { it.url }) { article ->
                         ArticleCard(
                             article = article,
-                            onClick = {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(article.url))
-                                context.startActivity(intent)
-                            }
+                            onClick = { onArticleClick(article) }
                         )
                     }
                 }

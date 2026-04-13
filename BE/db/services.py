@@ -3,6 +3,7 @@ from sqlmodel import Session, select, func
 from sqlalchemy import or_, and_, any_
 
 from .models import *
+from schemas import BookmarkView, CardView, PaginatedResponse, ThemeSearchRequest
 from .difficulty import (
     calculate_relative_difficulty,
     update_user_expertise,
@@ -117,7 +118,7 @@ def get_card_view_list(
     count_stmt = select(func.count()).select_from(base.subquery())
     total = session.exec(count_stmt).one()
 
-    data_stmt = base.order_by(Analysis.created_at.desc()).offset(offset).limit(limit)
+    data_stmt = base.order_by(Article.published_at.desc()).offset(offset).limit(limit)
     rows = session.exec(data_stmt).all()
     items = [CardView.model_validate(row) for row in rows]
 

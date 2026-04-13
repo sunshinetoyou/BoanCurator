@@ -1,5 +1,6 @@
 package com.boancurator.app.ui.screens.profile
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.boancurator.app.data.model.CardView
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import javax.inject.Inject
 
 data class ProfileUiState(
@@ -70,8 +72,19 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val user = authRepository.getCurrentUser()
-                _uiState.value = _uiState.value.copy(user = user)
-            } catch (_: Exception) {}
+                _uiState.value = _uiState.value.copy(user = user, error = null)
+            } catch (e: HttpException) {
+                if (e.code() == 401) {
+                    // TokenAuthenticator가 refresh 시도 후에도 401이면 세션 만료
+                    Log.w("ProfileVM", "Session expired, logging out")
+                    authRepository.logout()
+                    _uiState.value = ProfileUiState(error = "세션이 만료되었습니다. 다시 로그인해주세요.")
+                } else {
+                    Log.e("ProfileVM", "Failed to load profile: ${e.code()}", e)
+                }
+            } catch (e: Exception) {
+                Log.e("ProfileVM", "Failed to load profile", e)
+            }
         }
     }
 
@@ -80,7 +93,14 @@ class ProfileViewModel @Inject constructor(
             try {
                 val recs = articleRepository.getRecommendations()
                 _uiState.value = _uiState.value.copy(recommendations = recs)
-            } catch (_: Exception) {}
+            } catch (e: HttpException) {
+                if (e.code() == 401) {
+                    Log.w("ProfileVM", "Session expired during recommendations load")
+                    // loadUserProfile에서 이미 처리됨
+                }
+            } catch (e: Exception) {
+                Log.e("ProfileVM", "Failed to load recommendations", e)
+            }
         }
     }
 }

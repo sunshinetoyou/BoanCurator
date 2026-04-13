@@ -18,11 +18,14 @@ class AuthRepository @Inject constructor(
 
     suspend fun loginWithGoogle(idToken: String): User {
         val authResponse = apiService.loginWithGoogle(GoogleAuthRequest(token = idToken))
-        val jwt = authResponse.accessToken
-        if (!TokenManager.isValidJwt(jwt)) {
+        val accessToken = authResponse.accessToken
+        val refreshToken = authResponse.refreshToken
+
+        if (!TokenManager.isValidJwt(accessToken)) {
             throw IllegalStateException("서버에서 유효하지 않은 토큰을 반환했습니다")
         }
-        tokenManager.saveToken(jwt)
+
+        tokenManager.saveTokens(accessToken, refreshToken)
         return authResponse.user ?: apiService.getCurrentUser()
     }
 
