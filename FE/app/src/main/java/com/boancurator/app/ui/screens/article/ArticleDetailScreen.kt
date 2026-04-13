@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -70,6 +71,13 @@ fun ArticleDetailScreen(
     var pageTitle by remember { mutableStateOf("") }
     var progress by remember { mutableIntStateOf(0) }
     var isLoading by remember { mutableStateOf(true) }
+    var isTranslated by remember { mutableStateOf(false) }
+    var webViewRef by remember { mutableStateOf<WebView?>(null) }
+
+    fun getTranslatedUrl(originalUrl: String): String {
+        val encoded = Uri.encode(originalUrl)
+        return "https://translate.google.com/translate?sl=auto&tl=ko&u=$encoded"
+    }
 
     // Load rating for this article
     androidx.compose.runtime.LaunchedEffect(articleId) {
@@ -161,6 +169,21 @@ fun ArticleDetailScreen(
                     )
                 }
 
+                // 번역 토글
+                IconButton(onClick = {
+                    isTranslated = !isTranslated
+                    webViewRef?.loadUrl(
+                        if (isTranslated) getTranslatedUrl(url) else url
+                    )
+                }) {
+                    Icon(
+                        Icons.Filled.Translate,
+                        contentDescription = "번역",
+                        tint = if (isTranslated) Cyan else TextSecondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
                 IconButton(onClick = {
                     val shareIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"
@@ -211,7 +234,7 @@ fun ArticleDetailScreen(
         // WebView
         AndroidView(
             factory = { ctx ->
-                WebView(ctx).apply {
+                WebView(ctx).also { webViewRef = it }.apply {
                     webViewClient = object : WebViewClient() {
                         override fun onPageStarted(view: WebView?, u: String?, favicon: Bitmap?) {
                             isLoading = true

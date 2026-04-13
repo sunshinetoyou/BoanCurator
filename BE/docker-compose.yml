@@ -60,6 +60,7 @@ services:
       GEMINI_API_KEYS: ${GEMINI_API_KEYS}
     volumes:
       - chroma_data:/app/chroma_data
+      - ~/.claude:/root/.claude
 
   # Notification Worker (키워드 매칭 + 푸시 알림)
   notification_worker:
