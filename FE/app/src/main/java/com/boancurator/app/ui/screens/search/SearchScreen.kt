@@ -44,7 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.boancurator.app.data.model.CardView
+import androidx.navigation.NavController
+import com.boancurator.app.navigation.Screen
 import com.boancurator.app.ui.components.ArticleCard
 import com.boancurator.app.ui.theme.Cyan
 import com.boancurator.app.ui.theme.DarkBackground
@@ -52,44 +53,17 @@ import com.boancurator.app.ui.theme.DarkCard
 import com.boancurator.app.ui.theme.TextMuted
 import com.boancurator.app.ui.theme.TextPrimary
 import com.boancurator.app.ui.theme.TextSecondary
-import androidx.navigation.NavController
-import com.boancurator.app.navigation.Screen
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-<<<<<<< Updated upstream
-fun SearchRoute(
-=======
 fun SearchScreen(
     navController: NavController,
->>>>>>> Stashed changes
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val bookmarkMap by viewModel.bookmarkState.bookmarkMap.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    SearchScreen(
-        uiState = uiState,
-        onQueryChanged = viewModel::onQueryChanged,
-        onSearch = viewModel::search,
-        onSearchModeChanged = viewModel::onSearchModeChanged,
-        onThemeSelected = viewModel::onThemeSelected,
-        onArticleClick = { article ->
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(article.url)))
-        }
-    )
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun SearchScreen(
-    uiState: SearchUiState,
-    onQueryChanged: (String) -> Unit,
-    onSearch: () -> Unit,
-    onSearchModeChanged: (SearchMode) -> Unit,
-    onThemeSelected: (String) -> Unit,
-    onArticleClick: (CardView) -> Unit,
-) {
     Column(
         modifier = Modifier.fillMaxSize().background(DarkBackground)
     ) {
@@ -114,7 +88,7 @@ fun SearchScreen(
                 Tab(
                     selected = selectedTab == index,
                     onClick = {
-                        onSearchModeChanged(
+                        viewModel.onSearchModeChanged(
                             if (index == 0) SearchMode.SEMANTIC else SearchMode.THEME
                         )
                     },
@@ -129,7 +103,7 @@ fun SearchScreen(
             SearchMode.SEMANTIC -> {
                 TextField(
                     value = uiState.query,
-                    onValueChange = onQueryChanged,
+                    onValueChange = viewModel::onQueryChanged,
                     placeholder = { Text("보안 뉴스를 검색하세요...", color = TextMuted) },
                     leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = TextMuted) },
                     colors = TextFieldDefaults.colors(
@@ -144,15 +118,17 @@ fun SearchScreen(
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = { onSearch() }),
+                    keyboardActions = KeyboardActions(onSearch = { viewModel.search() }),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-<<<<<<< Updated upstream
-                SearchResults(uiState = uiState, onArticleClick = onArticleClick)
-=======
-                SearchResults(uiState = uiState, bookmarkMap = bookmarkMap, context = context, viewModel = viewModel, navController = navController)
->>>>>>> Stashed changes
+                SearchResults(
+                    uiState = uiState,
+                    bookmarkMap = bookmarkMap,
+                    context = context,
+                    viewModel = viewModel,
+                    navController = navController,
+                )
             }
 
             SearchMode.THEME -> {
@@ -167,7 +143,7 @@ fun SearchScreen(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(if (isSelected) Cyan.copy(alpha = 0.15f) else DarkCard)
-                                .clickable { onThemeSelected(theme) }
+                                .clickable { viewModel.onThemeSelected(theme) }
                                 .padding(horizontal = 14.dp, vertical = 8.dp)
                         ) {
                             Text(
@@ -180,11 +156,13 @@ fun SearchScreen(
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-<<<<<<< Updated upstream
-                SearchResults(uiState = uiState, onArticleClick = onArticleClick)
-=======
-                SearchResults(uiState = uiState, bookmarkMap = bookmarkMap, context = context, viewModel = viewModel, navController = navController)
->>>>>>> Stashed changes
+                SearchResults(
+                    uiState = uiState,
+                    bookmarkMap = bookmarkMap,
+                    context = context,
+                    viewModel = viewModel,
+                    navController = navController,
+                )
             }
         }
     }
@@ -193,14 +171,10 @@ fun SearchScreen(
 @Composable
 private fun SearchResults(
     uiState: SearchUiState,
-<<<<<<< Updated upstream
-    onArticleClick: (CardView) -> Unit,
-=======
     bookmarkMap: Map<String, Int>,
     context: android.content.Context,
     viewModel: SearchViewModel,
-    navController: NavController
->>>>>>> Stashed changes
+    navController: NavController,
 ) {
     when {
         uiState.isLoading -> {
@@ -226,12 +200,11 @@ private fun SearchResults(
                 items(uiState.results, key = { it.url ?: it.hashCode().toString() }) { article ->
                     ArticleCard(
                         article = article,
-<<<<<<< Updated upstream
-                        onClick = { onArticleClick(article) }
-=======
                         onClick = {
-                            article.url?.let {
-                                navController.navigate(Screen.ArticleDetail.createRoute(article.articleId, it))
+                            article.url?.let { url ->
+                                navController.navigate(
+                                    Screen.ArticleDetail.createRoute(article.articleId, url)
+                                )
                             }
                         },
                         isBookmarked = (article.url ?: "") in bookmarkMap,
@@ -241,7 +214,6 @@ private fun SearchResults(
                                 Toast.makeText(context, "로그인 후 북마크할 수 있습니다", Toast.LENGTH_SHORT).show()
                             }
                         }
->>>>>>> Stashed changes
                     )
                 }
             }

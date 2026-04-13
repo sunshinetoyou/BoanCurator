@@ -3,7 +3,6 @@ package com.boancurator.app.ui.screens.home;
 import com.boancurator.app.data.repository.ArticleRepository;
 import com.boancurator.app.data.repository.AuthRepository;
 import com.boancurator.app.data.repository.BookmarkRepository;
-import com.boancurator.app.data.repository.BookmarkStateHolder;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;
@@ -34,33 +33,27 @@ public final class HomeViewModel_Factory implements Factory<HomeViewModel> {
 
   private final Provider<AuthRepository> authRepositoryProvider;
 
-  private final Provider<BookmarkStateHolder> bookmarkStateProvider;
-
   public HomeViewModel_Factory(Provider<ArticleRepository> articleRepositoryProvider,
       Provider<BookmarkRepository> bookmarkRepositoryProvider,
-      Provider<AuthRepository> authRepositoryProvider,
-      Provider<BookmarkStateHolder> bookmarkStateProvider) {
+      Provider<AuthRepository> authRepositoryProvider) {
     this.articleRepositoryProvider = articleRepositoryProvider;
     this.bookmarkRepositoryProvider = bookmarkRepositoryProvider;
     this.authRepositoryProvider = authRepositoryProvider;
-    this.bookmarkStateProvider = bookmarkStateProvider;
   }
 
   @Override
   public HomeViewModel get() {
-    return newInstance(articleRepositoryProvider.get(), bookmarkRepositoryProvider.get(), authRepositoryProvider.get(), bookmarkStateProvider.get());
+    return newInstance(articleRepositoryProvider.get(), bookmarkRepositoryProvider.get(), authRepositoryProvider.get());
   }
 
   public static HomeViewModel_Factory create(Provider<ArticleRepository> articleRepositoryProvider,
       Provider<BookmarkRepository> bookmarkRepositoryProvider,
-      Provider<AuthRepository> authRepositoryProvider,
-      Provider<BookmarkStateHolder> bookmarkStateProvider) {
-    return new HomeViewModel_Factory(articleRepositoryProvider, bookmarkRepositoryProvider, authRepositoryProvider, bookmarkStateProvider);
+      Provider<AuthRepository> authRepositoryProvider) {
+    return new HomeViewModel_Factory(articleRepositoryProvider, bookmarkRepositoryProvider, authRepositoryProvider);
   }
 
   public static HomeViewModel newInstance(ArticleRepository articleRepository,
-      BookmarkRepository bookmarkRepository, AuthRepository authRepository,
-      BookmarkStateHolder bookmarkState) {
-    return new HomeViewModel(articleRepository, bookmarkRepository, authRepository, bookmarkState);
+      BookmarkRepository bookmarkRepository, AuthRepository authRepository) {
+    return new HomeViewModel(articleRepository, bookmarkRepository, authRepository);
   }
 }

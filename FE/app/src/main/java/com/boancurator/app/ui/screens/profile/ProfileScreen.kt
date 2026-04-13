@@ -113,27 +113,6 @@ fun ProfileRoute(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-<<<<<<< Updated upstream
-    ProfileScreen(
-        uiState = uiState,
-        onGoogleSignIn = {
-            scope.launch {
-                try {
-                    val credentialManager = CredentialManager.create(context)
-                    val signInOption = GetSignInWithGoogleOption.Builder(BuildConfig.GOOGLE_CLIENT_ID)
-                        .build()
-
-                    val request = GetCredentialRequest.Builder()
-                        .addCredentialOption(signInOption)
-                        .build()
-
-                    val result = credentialManager.getCredential(context, request)
-                    val googleIdToken = GoogleIdTokenCredential.createFrom(result.credential.data)
-                    viewModel.loginWithGoogle(googleIdToken.idToken)
-                } catch (e: Exception) {
-                    Log.e("ProfileScreen", "Google Sign-In failed", e)
-                }
-=======
     var showEditDialog by remember { mutableStateOf(false) }
     var showAddSourceDialog by remember { mutableStateOf(false) }
     var showAddKeywordDialog by remember { mutableStateOf(false) }
@@ -149,55 +128,21 @@ fun ProfileRoute(
                 viewModel.loginWithGoogle(googleIdToken.idToken)
             } catch (e: Exception) {
                 Log.e("ProfileScreen", "Google Sign-In failed", e)
->>>>>>> Stashed changes
             }
-        },
-        onLogout = viewModel::logout
-    )
-}
+        }
+    }
 
-<<<<<<< Updated upstream
-@Composable
-fun ProfileScreen(
-    uiState: ProfileUiState,
-    onGoogleSignIn: () -> Unit,
-    onLogout: () -> Unit,
-) {
-=======
     // 탭 진입 시 최신 데이터 로드
     androidx.compose.runtime.LaunchedEffect(Unit) {
         viewModel.refreshStats()
     }
 
->>>>>>> Stashed changes
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(DarkBackground),
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
         // Logout button (top right)
         item {
-<<<<<<< Updated upstream
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "프로필",
-                    color = TextPrimary,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                if (uiState.isLoggedIn) {
-                    IconButton(onClick = onLogout) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Logout,
-                            contentDescription = "로그아웃",
-                            tint = TextMuted
-                        )
-=======
             if (uiState.isLoggedIn) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
@@ -205,7 +150,6 @@ fun ProfileScreen(
                 ) {
                     IconButton(onClick = { viewModel.logout() }) {
                         Icon(Icons.AutoMirrored.Filled.Logout, "로그아웃", tint = TextMuted)
->>>>>>> Stashed changes
                     }
                 }
             } else {
@@ -221,26 +165,12 @@ fun ProfileScreen(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = DarkCard)
                 ) {
-<<<<<<< Updated upstream
-                    Row(
-                        modifier = Modifier.padding(20.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (uiState.user.picture != null) {
-                            AsyncImage(
-                                model = uiState.user.picture,
-                                contentDescription = "프로필 사진",
-                                modifier = Modifier
-                                    .size(56.dp)
-                                    .clip(CircleShape)
-=======
                     Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                         if (uiState.user!!.picture != null) {
                             AsyncImage(
                                 model = uiState.user!!.picture,
                                 contentDescription = "프로필",
                                 modifier = Modifier.size(56.dp).clip(CircleShape)
->>>>>>> Stashed changes
                                     .border(2.dp, Cyan.copy(alpha = 0.3f), CircleShape)
                             )
                         } else {
@@ -252,21 +182,6 @@ fun ProfileScreen(
                                 Icon(Icons.Filled.Person, null, tint = TextMuted, modifier = Modifier.size(28.dp))
                             }
                         }
-<<<<<<< Updated upstream
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(
-                                text = uiState.user.name ?: "사용자",
-                                color = TextPrimary,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = uiState.user.email,
-                                color = TextSecondary,
-                                fontSize = 14.sp
-                            )
-=======
                         Spacer(Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(uiState.user?.name ?: "사용자", color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
@@ -274,7 +189,6 @@ fun ProfileScreen(
                         }
                         IconButton(onClick = { showEditDialog = true }) {
                             Icon(Icons.Filled.Edit, "프로필 편집", tint = TextMuted, modifier = Modifier.size(20.dp))
->>>>>>> Stashed changes
                         }
                     }
                 }
@@ -477,17 +391,8 @@ fun ProfileScreen(
                             }
                         }
                         if (uiState.error != null) {
-<<<<<<< Updated upstream
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                text = uiState.error,
-                                color = com.boancurator.app.ui.theme.Error,
-                                fontSize = 13.sp
-                            )
-=======
                             Spacer(Modifier.height(12.dp))
                             Text(uiState.error!!, color = com.boancurator.app.ui.theme.Error, fontSize = 13.sp)
->>>>>>> Stashed changes
                         }
                     }
                 }

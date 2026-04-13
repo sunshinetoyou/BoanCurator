@@ -207,10 +207,6 @@ data class User(
     val id: Int?,
     @SerializedName("username") val name: String?,
     val email: String,
-<<<<<<< Updated upstream
-    @SerializedName("username") val name: String?,
-    @SerializedName("profile_image") val picture: String?
-=======
     @SerializedName("profile_image") val picture: String?,
     val expertise: Map<String, Double>? = null
 )
@@ -218,7 +214,6 @@ data class User(
 data class UserStats(
     @SerializedName("bookmark_count") val bookmarkCount: Int,
     @SerializedName("domain_distribution") val domainDistribution: Map<String, Int>
->>>>>>> Stashed changes
 )
 
 // --- Bookmark ---

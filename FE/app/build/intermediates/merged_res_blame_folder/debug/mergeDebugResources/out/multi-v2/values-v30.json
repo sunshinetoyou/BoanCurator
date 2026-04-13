@@ -4,11 +4,7 @@
             "outputFile": "com.boancurator.app-mergeDebugResources-73:/values-v30/values-v30.xml",
             "map": [
                 {
-<<<<<<< Updated upstream
-                    "source": "C:\\Users\\User\\.gradle\\caches\\8.11.1\\transforms\\c6cd4a0d3193664391b416723517b5ce\\transformed\\material3-release\\res\\values-v30\\values-v30.xml",
-=======
-                    "source": "C:\\Users\\yeonsu\\.gradle\\caches\\8.11.1\\transforms\\a9f334308af71d2e0ac9850aba370d05\\transformed\\material3-release\\res\\values-v30\\values-v30.xml",
->>>>>>> Stashed changes
+                    "source": "C:\\Users\\User\\.gradle\\caches\\8.11.1\\transforms\\a9f334308af71d2e0ac9850aba370d05\\transformed\\material3-release\\res\\values-v30\\values-v30.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",

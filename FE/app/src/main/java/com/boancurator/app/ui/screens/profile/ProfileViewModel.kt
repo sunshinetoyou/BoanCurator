@@ -110,11 +110,13 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val user = authRepository.getCurrentUser()
-<<<<<<< Updated upstream
-                _uiState.value = _uiState.value.copy(user = user, error = null)
+                _uiState.value = _uiState.value.copy(
+                    user = user,
+                    expertise = user.expertise,
+                    error = null,
+                )
             } catch (e: HttpException) {
                 if (e.code() == 401) {
-                    // TokenAuthenticator가 refresh 시도 후에도 401이면 세션 만료
                     Log.w("ProfileVM", "Session expired, logging out")
                     authRepository.logout()
                     _uiState.value = ProfileUiState(error = "세션이 만료되었습니다. 다시 로그인해주세요.")
@@ -124,32 +126,15 @@ class ProfileViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("ProfileVM", "Failed to load profile", e)
             }
-=======
-                _uiState.value = _uiState.value.copy(user = user, expertise = user.expertise)
-            } catch (_: Exception) {}
->>>>>>> Stashed changes
         }
     }
 
     private fun loadStats() {
         viewModelScope.launch {
             try {
-<<<<<<< Updated upstream
-                val recs = articleRepository.getRecommendations()
-                _uiState.value = _uiState.value.copy(recommendations = recs)
-            } catch (e: HttpException) {
-                if (e.code() == 401) {
-                    Log.w("ProfileVM", "Session expired during recommendations load")
-                    // loadUserProfile에서 이미 처리됨
-                }
-            } catch (e: Exception) {
-                Log.e("ProfileVM", "Failed to load recommendations", e)
-            }
-=======
                 val stats = authRepository.getUserStats()
                 _uiState.value = _uiState.value.copy(stats = stats)
             } catch (_: Exception) {}
->>>>>>> Stashed changes
         }
     }
 

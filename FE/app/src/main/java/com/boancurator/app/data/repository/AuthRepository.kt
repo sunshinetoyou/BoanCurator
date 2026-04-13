@@ -33,15 +33,10 @@ class AuthRepository @Inject constructor(
         if (!TokenManager.isValidJwt(accessToken)) {
             throw IllegalStateException("서버에서 유효하지 않은 토큰을 반환했습니다")
         }
-<<<<<<< Updated upstream
 
         tokenManager.saveTokens(accessToken, refreshToken)
-=======
-        // 토큰 저장 + 즉시 상태 반영
-        authStateManager.onLogin(jwt)
-        // FCM 토큰 등록
+        authStateManager.onLogin(accessToken)
         registerFcmToken()
->>>>>>> Stashed changes
         return authResponse.user ?: apiService.getCurrentUser()
     }
 

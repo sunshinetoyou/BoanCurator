@@ -34,15 +34,9 @@ data class BottomNavItem(
 )
 
 val bottomNavItems = listOf(
-<<<<<<< Updated upstream
-    BottomNavItem(Screen.Home, "피드", Icons.Filled.Home, Icons.Outlined.Home),
-    BottomNavItem(Screen.Search, "검색", Icons.Filled.Search, Icons.Outlined.Search),
-    BottomNavItem(Screen.Bookmarks, "저장소", Icons.Filled.Bookmark, Icons.Outlined.BookmarkBorder),
-=======
     BottomNavItem(Screen.Feed, "피드", Icons.Filled.AutoAwesome, Icons.Outlined.AutoAwesome),
     BottomNavItem(Screen.Articles, "전체기사", Icons.Filled.Article, Icons.Outlined.Article),
     BottomNavItem(Screen.Search, "검색", Icons.Filled.Search, Icons.Outlined.Search),
->>>>>>> Stashed changes
     BottomNavItem(Screen.Profile, "프로필", Icons.Filled.Person, Icons.Outlined.Person)
 )
 
