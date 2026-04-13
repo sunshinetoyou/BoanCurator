@@ -1,12 +1,12 @@
 package com.boancurator.app.ui.components
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Article
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.BookmarkBorder
-import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Article
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
@@ -34,9 +34,15 @@ data class BottomNavItem(
 )
 
 val bottomNavItems = listOf(
+<<<<<<< Updated upstream
     BottomNavItem(Screen.Home, "피드", Icons.Filled.Home, Icons.Outlined.Home),
     BottomNavItem(Screen.Search, "검색", Icons.Filled.Search, Icons.Outlined.Search),
     BottomNavItem(Screen.Bookmarks, "저장소", Icons.Filled.Bookmark, Icons.Outlined.BookmarkBorder),
+=======
+    BottomNavItem(Screen.Feed, "피드", Icons.Filled.AutoAwesome, Icons.Outlined.AutoAwesome),
+    BottomNavItem(Screen.Articles, "전체기사", Icons.Filled.Article, Icons.Outlined.Article),
+    BottomNavItem(Screen.Search, "검색", Icons.Filled.Search, Icons.Outlined.Search),
+>>>>>>> Stashed changes
     BottomNavItem(Screen.Profile, "프로필", Icons.Filled.Person, Icons.Outlined.Person)
 )
 
@@ -56,7 +62,7 @@ fun BottomNavBar(navController: NavController) {
                 onClick = {
                     if (currentRoute != item.screen.route) {
                         navController.navigate(item.screen.route) {
-                            popUpTo(Screen.Home.route) { saveState = true }
+                            popUpTo(Screen.Feed.route) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
                         }

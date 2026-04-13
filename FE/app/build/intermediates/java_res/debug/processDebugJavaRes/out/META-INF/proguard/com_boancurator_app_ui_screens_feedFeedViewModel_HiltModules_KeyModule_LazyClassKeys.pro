@@ -1,0 +1,4 @@
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.article.ArticleDetailViewModel
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.article.ArticleDetailViewModel
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.feed.FeedViewModel
+-keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.feed.FeedViewModel

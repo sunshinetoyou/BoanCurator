@@ -33,10 +33,10 @@ data class ArticleEntity(
 
     companion object {
         fun from(card: CardView): ArticleEntity = ArticleEntity(
-            url = card.url,
+            url = card.url ?: "",
             articleId = card.articleId,
-            source = card.source,
-            title = card.title,
+            source = card.source ?: "",
+            title = card.title ?: "",
             publishedAt = card.publishedAt,
             imageUrls = card.imageUrls?.joinToString("|||"),
             summary = card.summary,

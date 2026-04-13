@@ -11,7 +11,25 @@
       "Bash(keytool -list -v -keystore __TRACKED_VAR__/.android/debug.keystore -alias androiddebugkey -storepass android)",
       "Bash(curl -s \"https://bc-api.danyeon.cloud/v1/cardnews?offset=0&limit=1\")",
       "Bash(python3 -c \"from datetime import datetime; print\\(datetime.fromtimestamp\\(1775126713\\)\\)\")",
-      "Bash(curl -s -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6Inllb25zdUBkYW5rb29rLmFjLmtyIiwiZXhwIjoxNzc1MTI2NzEzfQ.MaUyKn-2RB1LmxfslT6iwtZ5Le6uiHuXXvO5gh18HeU\" \"https://bc-api.danyeon.cloud/v1/bookmarks?offset=0&limit=5\")"
+      "Bash(curl -s -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6Inllb25zdUBkYW5rb29rLmFjLmtyIiwiZXhwIjoxNzc1MTI2NzEzfQ.MaUyKn-2RB1LmxfslT6iwtZ5Le6uiHuXXvO5gh18HeU\" \"https://bc-api.danyeon.cloud/v1/bookmarks?offset=0&limit=5\")",
+      "Bash(curl -s \"https://bc-api.danyeon.cloud/openapi.json\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(k\\) for k in d['paths'].keys\\(\\) if 'user' in k.lower\\(\\) or 'me' in k.lower\\(\\) or 'stat' in k.lower\\(\\) or 'recommend' in k.lower\\(\\)]\")",
+      "Bash(curl -s -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6Inllb25zdUBkYW5rb29rLmFjLmtyIiwiZXhwIjoxNzc1MTI2NzEzfQ.MaUyKn-2RB1LmxfslT6iwtZ5Le6uiHuXXvO5gh18HeU' https://bc-api.danyeon.cloud/v1/users/me)",
+      "Bash(curl -s -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6Inllb25zdUBkYW5rb29rLmFjLmtyIiwiZXhwIjoxNzc1MTI2NzEzfQ.MaUyKn-2RB1LmxfslT6iwtZ5Le6uiHuXXvO5gh18HeU' https://bc-api.danyeon.cloud/v1/users/me/stats)",
+      "Bash(curl -s -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6Inllb25zdUBkYW5rb29rLmFjLmtyIiwiZXhwIjoxNzc1MTI2NzEzfQ.MaUyKn-2RB1LmxfslT6iwtZ5Le6uiHuXXvO5gh18HeU' https://bc-api.danyeon.cloud/v1/users/me/expertise)",
+      "Bash(curl -s \"https://bc-api.danyeon.cloud/v1/cardnews?offset=0&limit=2\")",
+      "Bash(curl:*)",
+      "Bash(./gradlew assembleDebug --info)",
+      "Read(//c/Program Files/Java//**)",
+      "Read(//c/Program Files/Android/Android Studio/**)",
+      "Bash(JAVA_HOME=\"/c/Program Files/Java/jdk-17\" ./gradlew assembleDebug)",
+      "Bash(adb logcat:*)",
+      "Bash(adb install:*)",
+      "Bash(python3 -m json.tool)",
+      "Bash(adb shell:*)",
+      "Bash(python3 -c ':*)",
+      "Bash(python -c ':*)",
+      "Read(//tmp/**)"
     ]
   }
 }

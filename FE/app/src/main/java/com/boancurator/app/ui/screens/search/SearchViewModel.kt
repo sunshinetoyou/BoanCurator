@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.boancurator.app.data.model.ApiTheme
 import com.boancurator.app.data.model.CardView
 import com.boancurator.app.data.repository.ArticleRepository
+import com.boancurator.app.data.repository.AuthRepository
+import com.boancurator.app.data.repository.BookmarkRepository
+import com.boancurator.app.data.repository.BookmarkStateHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -29,7 +32,10 @@ enum class SearchMode { SEMANTIC, THEME }
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val articleRepository: ArticleRepository
+    private val articleRepository: ArticleRepository,
+    private val authRepository: AuthRepository,
+    private val bookmarkRepository: BookmarkRepository,
+    val bookmarkState: BookmarkStateHolder
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
@@ -39,7 +45,6 @@ class SearchViewModel @Inject constructor(
 
     fun onQueryChanged(query: String) {
         _uiState.value = _uiState.value.copy(query = query)
-
         searchJob?.cancel()
         if (query.length >= 2) {
             searchJob = viewModelScope.launch {
@@ -52,11 +57,7 @@ class SearchViewModel @Inject constructor(
     }
 
     fun onSearchModeChanged(mode: SearchMode) {
-        _uiState.value = _uiState.value.copy(
-            searchMode = mode,
-            results = emptyList(),
-            hasSearched = false
-        )
+        _uiState.value = _uiState.value.copy(searchMode = mode, results = emptyList(), hasSearched = false)
     }
 
     fun onThemeSelected(theme: String) {
@@ -65,10 +66,7 @@ class SearchViewModel @Inject constructor(
             try {
                 val response = articleRepository.searchByTheme(listOf(theme))
                 _uiState.value = _uiState.value.copy(
-                    results = response.items,
-                    isLoading = false,
-                    hasSearched = true,
-                    error = null
+                    results = response.items, isLoading = false, hasSearched = true, error = null
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
@@ -81,20 +79,40 @@ class SearchViewModel @Inject constructor(
         performSearch()
     }
 
+    fun toggleBookmark(article: CardView): Boolean {
+        if (!authRepository.isLoggedIn.value) return false
+        val articleId = article.articleId ?: return false
+        val url = article.url ?: return false
+        val existingId = bookmarkState.getBookmarkId(url)
+
+        if (existingId != null) {
+            bookmarkState.remove(url)
+            viewModelScope.launch {
+                try { bookmarkRepository.deleteBookmark(existingId) }
+                catch (_: Exception) { bookmarkState.add(url, existingId) }
+            }
+        } else {
+            bookmarkState.add(url, -1)
+            viewModelScope.launch {
+                try {
+                    val bm = bookmarkRepository.createBookmark(articleId)
+                    bookmarkState.add(url, bm.id)
+                } catch (_: Exception) { bookmarkState.remove(url) }
+            }
+        }
+        return true
+    }
+
     private fun performSearch() {
         val query = _uiState.value.query
         if (query.isBlank()) return
-
         _uiState.value = _uiState.value.copy(isLoading = true)
 
         viewModelScope.launch {
             try {
                 val results = articleRepository.searchSemantic(query)
                 _uiState.value = _uiState.value.copy(
-                    results = results,
-                    isLoading = false,
-                    hasSearched = true,
-                    error = null
+                    results = results, isLoading = false, hasSearched = true, error = null
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)

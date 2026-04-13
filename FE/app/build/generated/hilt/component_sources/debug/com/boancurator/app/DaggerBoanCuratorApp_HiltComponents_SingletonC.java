@@ -8,22 +8,37 @@ import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
 import com.boancurator.app.data.api.ApiService;
 import com.boancurator.app.data.api.AuthInterceptor;
+<<<<<<< Updated upstream
 import com.boancurator.app.data.api.TokenAuthenticator;
+=======
+import com.boancurator.app.data.fcm.BoanFcmService;
+import com.boancurator.app.data.fcm.BoanFcmService_MembersInjector;
+>>>>>>> Stashed changes
 import com.boancurator.app.data.local.AppDatabase;
 import com.boancurator.app.data.local.ArticleDao;
 import com.boancurator.app.data.repository.ArticleRepository;
 import com.boancurator.app.data.repository.AuthRepository;
+import com.boancurator.app.data.repository.AuthStateManager;
 import com.boancurator.app.data.repository.BookmarkRepository;
+import com.boancurator.app.data.repository.BookmarkStateHolder;
+import com.boancurator.app.data.repository.KeywordRepository;
+import com.boancurator.app.data.repository.NotificationRepository;
+import com.boancurator.app.data.repository.RatingRepository;
+import com.boancurator.app.data.repository.SourceRepository;
 import com.boancurator.app.di.AppModule_ProvideApiServiceFactory;
 import com.boancurator.app.di.AppModule_ProvideArticleDaoFactory;
 import com.boancurator.app.di.AppModule_ProvideDatabaseFactory;
 import com.boancurator.app.di.AppModule_ProvideOkHttpClientFactory;
 import com.boancurator.app.di.AppModule_ProvideRetrofitFactory;
 import com.boancurator.app.di.AppModule_ProvideTokenManagerFactory;
-import com.boancurator.app.ui.screens.bookmarks.BookmarksViewModel;
-import com.boancurator.app.ui.screens.bookmarks.BookmarksViewModel_HiltModules;
-import com.boancurator.app.ui.screens.bookmarks.BookmarksViewModel_HiltModules_BindsModule_Binds_LazyMapKey;
-import com.boancurator.app.ui.screens.bookmarks.BookmarksViewModel_HiltModules_KeyModule_Provide_LazyMapKey;
+import com.boancurator.app.ui.screens.article.ArticleDetailViewModel;
+import com.boancurator.app.ui.screens.article.ArticleDetailViewModel_HiltModules;
+import com.boancurator.app.ui.screens.article.ArticleDetailViewModel_HiltModules_BindsModule_Binds_LazyMapKey;
+import com.boancurator.app.ui.screens.article.ArticleDetailViewModel_HiltModules_KeyModule_Provide_LazyMapKey;
+import com.boancurator.app.ui.screens.feed.FeedViewModel;
+import com.boancurator.app.ui.screens.feed.FeedViewModel_HiltModules;
+import com.boancurator.app.ui.screens.feed.FeedViewModel_HiltModules_BindsModule_Binds_LazyMapKey;
+import com.boancurator.app.ui.screens.feed.FeedViewModel_HiltModules_KeyModule_Provide_LazyMapKey;
 import com.boancurator.app.ui.screens.home.HomeViewModel;
 import com.boancurator.app.ui.screens.home.HomeViewModel_HiltModules;
 import com.boancurator.app.ui.screens.home.HomeViewModel_HiltModules_BindsModule_Binds_LazyMapKey;
@@ -37,6 +52,7 @@ import com.boancurator.app.ui.screens.search.SearchViewModel_HiltModules;
 import com.boancurator.app.ui.screens.search.SearchViewModel_HiltModules_BindsModule_Binds_LazyMapKey;
 import com.boancurator.app.ui.screens.search.SearchViewModel_HiltModules_KeyModule_Provide_LazyMapKey;
 import com.boancurator.app.util.TokenManager;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dagger.hilt.android.ActivityRetainedLifecycle;
 import dagger.hilt.android.ViewModelLifecycle;
 import dagger.hilt.android.internal.builders.ActivityComponentBuilder;
@@ -399,7 +415,7 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
 
     @Override
     public Map<Class<?>, Boolean> getViewModelKeys() {
-      return LazyClassKeyMap.<Boolean>of(MapBuilder.<String, Boolean>newMapBuilder(4).put(BookmarksViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, BookmarksViewModel_HiltModules.KeyModule.provide()).put(HomeViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, HomeViewModel_HiltModules.KeyModule.provide()).put(ProfileViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, ProfileViewModel_HiltModules.KeyModule.provide()).put(SearchViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, SearchViewModel_HiltModules.KeyModule.provide()).build());
+      return LazyClassKeyMap.<Boolean>of(MapBuilder.<String, Boolean>newMapBuilder(5).put(ArticleDetailViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, ArticleDetailViewModel_HiltModules.KeyModule.provide()).put(FeedViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, FeedViewModel_HiltModules.KeyModule.provide()).put(HomeViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, HomeViewModel_HiltModules.KeyModule.provide()).put(ProfileViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, ProfileViewModel_HiltModules.KeyModule.provide()).put(SearchViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, SearchViewModel_HiltModules.KeyModule.provide()).build());
     }
 
     @Override
@@ -425,7 +441,9 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
 
     private final ViewModelCImpl viewModelCImpl = this;
 
-    private Provider<BookmarksViewModel> bookmarksViewModelProvider;
+    private Provider<ArticleDetailViewModel> articleDetailViewModelProvider;
+
+    private Provider<FeedViewModel> feedViewModelProvider;
 
     private Provider<HomeViewModel> homeViewModelProvider;
 
@@ -446,15 +464,16 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
     @SuppressWarnings("unchecked")
     private void initialize(final SavedStateHandle savedStateHandleParam,
         final ViewModelLifecycle viewModelLifecycleParam) {
-      this.bookmarksViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 0);
-      this.homeViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 1);
-      this.profileViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 2);
-      this.searchViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 3);
+      this.articleDetailViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 0);
+      this.feedViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 1);
+      this.homeViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 2);
+      this.profileViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 3);
+      this.searchViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 4);
     }
 
     @Override
     public Map<Class<?>, javax.inject.Provider<ViewModel>> getHiltViewModelMap() {
-      return LazyClassKeyMap.<javax.inject.Provider<ViewModel>>of(MapBuilder.<String, javax.inject.Provider<ViewModel>>newMapBuilder(4).put(BookmarksViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) bookmarksViewModelProvider)).put(HomeViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) homeViewModelProvider)).put(ProfileViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) profileViewModelProvider)).put(SearchViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) searchViewModelProvider)).build());
+      return LazyClassKeyMap.<javax.inject.Provider<ViewModel>>of(MapBuilder.<String, javax.inject.Provider<ViewModel>>newMapBuilder(5).put(ArticleDetailViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) articleDetailViewModelProvider)).put(FeedViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) feedViewModelProvider)).put(HomeViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) homeViewModelProvider)).put(ProfileViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) profileViewModelProvider)).put(SearchViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) searchViewModelProvider)).build());
     }
 
     @Override
@@ -483,17 +502,20 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
       @Override
       public T get() {
         switch (id) {
-          case 0: // com.boancurator.app.ui.screens.bookmarks.BookmarksViewModel 
-          return (T) new BookmarksViewModel(singletonCImpl.bookmarkRepositoryProvider.get(), singletonCImpl.authRepositoryProvider.get());
+          case 0: // com.boancurator.app.ui.screens.article.ArticleDetailViewModel 
+          return (T) new ArticleDetailViewModel(singletonCImpl.articleRepositoryProvider.get(), singletonCImpl.authRepositoryProvider.get(), singletonCImpl.bookmarkRepositoryProvider.get(), singletonCImpl.ratingRepositoryProvider.get(), singletonCImpl.bookmarkStateHolderProvider.get());
 
-          case 1: // com.boancurator.app.ui.screens.home.HomeViewModel 
-          return (T) new HomeViewModel(singletonCImpl.articleRepositoryProvider.get(), singletonCImpl.bookmarkRepositoryProvider.get(), singletonCImpl.authRepositoryProvider.get());
+          case 1: // com.boancurator.app.ui.screens.feed.FeedViewModel 
+          return (T) new FeedViewModel(singletonCImpl.articleRepositoryProvider.get(), singletonCImpl.authRepositoryProvider.get(), singletonCImpl.bookmarkRepositoryProvider.get(), singletonCImpl.bookmarkStateHolderProvider.get());
 
-          case 2: // com.boancurator.app.ui.screens.profile.ProfileViewModel 
-          return (T) new ProfileViewModel(singletonCImpl.authRepositoryProvider.get(), singletonCImpl.articleRepositoryProvider.get());
+          case 2: // com.boancurator.app.ui.screens.home.HomeViewModel 
+          return (T) new HomeViewModel(singletonCImpl.articleRepositoryProvider.get(), singletonCImpl.bookmarkRepositoryProvider.get(), singletonCImpl.authRepositoryProvider.get(), singletonCImpl.bookmarkStateHolderProvider.get());
 
-          case 3: // com.boancurator.app.ui.screens.search.SearchViewModel 
-          return (T) new SearchViewModel(singletonCImpl.articleRepositoryProvider.get());
+          case 3: // com.boancurator.app.ui.screens.profile.ProfileViewModel 
+          return (T) new ProfileViewModel(singletonCImpl.authRepositoryProvider.get(), singletonCImpl.keywordRepositoryProvider.get(), singletonCImpl.notificationRepositoryProvider.get(), singletonCImpl.sourceRepositoryProvider.get());
+
+          case 4: // com.boancurator.app.ui.screens.search.SearchViewModel 
+          return (T) new SearchViewModel(singletonCImpl.articleRepositoryProvider.get(), singletonCImpl.authRepositoryProvider.get(), singletonCImpl.bookmarkRepositoryProvider.get(), singletonCImpl.bookmarkStateHolderProvider.get());
 
           default: throw new AssertionError(id);
         }
@@ -568,6 +590,18 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
 
 
     }
+
+    @Override
+    public void injectBoanFcmService(BoanFcmService boanFcmService) {
+      injectBoanFcmService2(boanFcmService);
+    }
+
+    @CanIgnoreReturnValue
+    private BoanFcmService injectBoanFcmService2(BoanFcmService instance) {
+      BoanFcmService_MembersInjector.injectApiService(instance, singletonCImpl.provideApiServiceProvider.get());
+      BoanFcmService_MembersInjector.injectTokenManager(instance, singletonCImpl.provideTokenManagerProvider.get());
+      return instance;
+    }
   }
 
   private static final class SingletonCImpl extends BoanCuratorApp_HiltComponents.SingletonC {
@@ -576,6 +610,8 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
     private final SingletonCImpl singletonCImpl = this;
 
     private Provider<TokenManager> provideTokenManagerProvider;
+
+    private Provider<AuthStateManager> authStateManagerProvider;
 
     private Provider<AuthInterceptor> authInterceptorProvider;
 
@@ -587,15 +623,25 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
 
     private Provider<ApiService> provideApiServiceProvider;
 
-    private Provider<BookmarkRepository> bookmarkRepositoryProvider;
-
-    private Provider<AuthRepository> authRepositoryProvider;
-
     private Provider<AppDatabase> provideDatabaseProvider;
 
     private Provider<ArticleDao> provideArticleDaoProvider;
 
     private Provider<ArticleRepository> articleRepositoryProvider;
+
+    private Provider<BookmarkStateHolder> bookmarkStateHolderProvider;
+
+    private Provider<AuthRepository> authRepositoryProvider;
+
+    private Provider<BookmarkRepository> bookmarkRepositoryProvider;
+
+    private Provider<RatingRepository> ratingRepositoryProvider;
+
+    private Provider<KeywordRepository> keywordRepositoryProvider;
+
+    private Provider<NotificationRepository> notificationRepositoryProvider;
+
+    private Provider<SourceRepository> sourceRepositoryProvider;
 
     private SingletonCImpl(ApplicationContextModule applicationContextModuleParam) {
       this.applicationContextModule = applicationContextModuleParam;
@@ -606,16 +652,30 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
     @SuppressWarnings("unchecked")
     private void initialize(final ApplicationContextModule applicationContextModuleParam) {
       this.provideTokenManagerProvider = DoubleCheck.provider(new SwitchingProvider<TokenManager>(singletonCImpl, 5));
+      this.authStateManagerProvider = DoubleCheck.provider(new SwitchingProvider<AuthStateManager>(singletonCImpl, 6));
       this.authInterceptorProvider = DoubleCheck.provider(new SwitchingProvider<AuthInterceptor>(singletonCImpl, 4));
       this.tokenAuthenticatorProvider = DoubleCheck.provider(new SwitchingProvider<TokenAuthenticator>(singletonCImpl, 6));
       this.provideOkHttpClientProvider = DoubleCheck.provider(new SwitchingProvider<OkHttpClient>(singletonCImpl, 3));
       this.provideRetrofitProvider = DoubleCheck.provider(new SwitchingProvider<Retrofit>(singletonCImpl, 2));
       this.provideApiServiceProvider = DoubleCheck.provider(new SwitchingProvider<ApiService>(singletonCImpl, 1));
+<<<<<<< Updated upstream
       this.bookmarkRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<BookmarkRepository>(singletonCImpl, 0));
       this.authRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<AuthRepository>(singletonCImpl, 7));
       this.provideDatabaseProvider = DoubleCheck.provider(new SwitchingProvider<AppDatabase>(singletonCImpl, 10));
       this.provideArticleDaoProvider = DoubleCheck.provider(new SwitchingProvider<ArticleDao>(singletonCImpl, 9));
       this.articleRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<ArticleRepository>(singletonCImpl, 8));
+=======
+      this.provideDatabaseProvider = DoubleCheck.provider(new SwitchingProvider<AppDatabase>(singletonCImpl, 8));
+      this.provideArticleDaoProvider = DoubleCheck.provider(new SwitchingProvider<ArticleDao>(singletonCImpl, 7));
+      this.articleRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<ArticleRepository>(singletonCImpl, 0));
+      this.bookmarkStateHolderProvider = DoubleCheck.provider(new SwitchingProvider<BookmarkStateHolder>(singletonCImpl, 10));
+      this.authRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<AuthRepository>(singletonCImpl, 9));
+      this.bookmarkRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<BookmarkRepository>(singletonCImpl, 11));
+      this.ratingRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<RatingRepository>(singletonCImpl, 12));
+      this.keywordRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<KeywordRepository>(singletonCImpl, 13));
+      this.notificationRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<NotificationRepository>(singletonCImpl, 14));
+      this.sourceRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<SourceRepository>(singletonCImpl, 15));
+>>>>>>> Stashed changes
     }
 
     @Override
@@ -651,8 +711,8 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
       @Override
       public T get() {
         switch (id) {
-          case 0: // com.boancurator.app.data.repository.BookmarkRepository 
-          return (T) new BookmarkRepository(singletonCImpl.provideApiServiceProvider.get());
+          case 0: // com.boancurator.app.data.repository.ArticleRepository 
+          return (T) new ArticleRepository(singletonCImpl.provideApiServiceProvider.get(), singletonCImpl.provideArticleDaoProvider.get());
 
           case 1: // com.boancurator.app.data.api.ApiService 
           return (T) AppModule_ProvideApiServiceFactory.provideApiService(singletonCImpl.provideRetrofitProvider.get());
@@ -664,11 +724,12 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
           return (T) AppModule_ProvideOkHttpClientFactory.provideOkHttpClient(singletonCImpl.authInterceptorProvider.get(), singletonCImpl.tokenAuthenticatorProvider.get());
 
           case 4: // com.boancurator.app.data.api.AuthInterceptor 
-          return (T) new AuthInterceptor(singletonCImpl.provideTokenManagerProvider.get());
+          return (T) new AuthInterceptor(singletonCImpl.provideTokenManagerProvider.get(), singletonCImpl.authStateManagerProvider.get());
 
           case 5: // com.boancurator.app.util.TokenManager 
           return (T) AppModule_ProvideTokenManagerFactory.provideTokenManager(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
+<<<<<<< Updated upstream
           case 6: // com.boancurator.app.data.api.TokenAuthenticator 
           return (T) new TokenAuthenticator(singletonCImpl.provideTokenManagerProvider.get());
 
@@ -682,7 +743,37 @@ public final class DaggerBoanCuratorApp_HiltComponents_SingletonC {
           return (T) AppModule_ProvideArticleDaoFactory.provideArticleDao(singletonCImpl.provideDatabaseProvider.get());
 
           case 10: // com.boancurator.app.data.local.AppDatabase 
+=======
+          case 6: // com.boancurator.app.data.repository.AuthStateManager 
+          return (T) new AuthStateManager(singletonCImpl.provideTokenManagerProvider.get());
+
+          case 7: // com.boancurator.app.data.local.ArticleDao 
+          return (T) AppModule_ProvideArticleDaoFactory.provideArticleDao(singletonCImpl.provideDatabaseProvider.get());
+
+          case 8: // com.boancurator.app.data.local.AppDatabase 
+>>>>>>> Stashed changes
           return (T) AppModule_ProvideDatabaseFactory.provideDatabase(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
+
+          case 9: // com.boancurator.app.data.repository.AuthRepository 
+          return (T) new AuthRepository(singletonCImpl.provideApiServiceProvider.get(), singletonCImpl.provideTokenManagerProvider.get(), singletonCImpl.authStateManagerProvider.get(), singletonCImpl.bookmarkStateHolderProvider.get());
+
+          case 10: // com.boancurator.app.data.repository.BookmarkStateHolder 
+          return (T) new BookmarkStateHolder();
+
+          case 11: // com.boancurator.app.data.repository.BookmarkRepository 
+          return (T) new BookmarkRepository(singletonCImpl.provideApiServiceProvider.get());
+
+          case 12: // com.boancurator.app.data.repository.RatingRepository 
+          return (T) new RatingRepository(singletonCImpl.provideApiServiceProvider.get());
+
+          case 13: // com.boancurator.app.data.repository.KeywordRepository 
+          return (T) new KeywordRepository(singletonCImpl.provideApiServiceProvider.get());
+
+          case 14: // com.boancurator.app.data.repository.NotificationRepository 
+          return (T) new NotificationRepository(singletonCImpl.provideApiServiceProvider.get());
+
+          case 15: // com.boancurator.app.data.repository.SourceRepository 
+          return (T) new SourceRepository(singletonCImpl.provideApiServiceProvider.get());
 
           default: throw new AssertionError(id);
         }

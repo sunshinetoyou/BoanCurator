@@ -1,10 +1,33 @@
 {
     "logs": [
         {
-            "outputFile": "com.boancurator.app-mergeDebugResources-70:/values-v21/values-v21.xml",
+            "outputFile": "com.boancurator.app-mergeDebugResources-73:/values-v21/values-v21.xml",
             "map": [
                 {
+<<<<<<< Updated upstream
                     "source": "C:\\Users\\User\\.gradle\\caches\\8.11.1\\transforms\\18f97291bfe3b7aaef10ffeecad39e5b\\transformed\\core-1.15.0\\res\\values-v21\\values-v21.xml",
+=======
+                    "source": "C:\\Users\\yeonsu\\.gradle\\caches\\8.11.1\\transforms\\175a102b8389969dc910fe64a269411e\\transformed\\credentials-play-services-auth-1.3.0\\res\\values-v21\\values-v21.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "9",
+                        "endColumns": "12",
+                        "endOffsets": "543"
+                    },
+                    "to": {
+                        "startLines": "10",
+                        "startColumns": "4",
+                        "startOffsets": "864",
+                        "endLines": "17",
+                        "endColumns": "12",
+                        "endOffsets": "1352"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\yeonsu\\.gradle\\caches\\8.11.1\\transforms\\eecf0ab55359037929dc519c89304d1d\\transformed\\core-1.15.0\\res\\values-v21\\values-v21.xml",
+>>>>>>> Stashed changes
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,13",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4",

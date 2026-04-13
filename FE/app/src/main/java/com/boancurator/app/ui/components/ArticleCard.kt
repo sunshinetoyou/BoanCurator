@@ -64,7 +64,7 @@ fun ArticleCard(
             if (imageUrl != null) {
                 AsyncImage(
                     model = imageUrl,
-                    contentDescription = article.title,
+                    contentDescription = article.title ?: "",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -82,7 +82,7 @@ fun ArticleCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = article.source.uppercase(),
+                        text = (article.source ?: "").uppercase(),
                         color = TextMuted,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
@@ -109,7 +109,7 @@ fun ArticleCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = article.title,
+                    text = article.title ?: "",
                     color = TextPrimary,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -154,7 +154,7 @@ fun ArticleCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row {
-                Text(text = article.source, color = TextMuted, fontSize = 12.sp)
+                Text(text = article.source ?: "", color = TextMuted, fontSize = 12.sp)
                 Text(text = "  ·  ", color = TextMuted, fontSize = 12.sp)
                 Text(text = formatDate(article.publishedAt), color = TextMuted, fontSize = 12.sp)
             }

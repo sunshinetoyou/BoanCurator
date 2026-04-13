@@ -34,6 +34,10 @@ class ArticleRepository @Inject constructor(
         return articleDao.count() > 0
     }
 
+    suspend fun clearCache() {
+        articleDao.deleteAll()
+    }
+
     /** 7일 이상 된 캐시 삭제 */
     suspend fun cleanOldCache() {
         val sevenDaysAgo = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000L
@@ -50,6 +54,10 @@ class ArticleRepository @Inject constructor(
 
     suspend fun searchByTheme(themes: List<String>, searchType: Int = 1): PaginatedResponse {
         return apiService.searchByTheme(themes, searchType)
+    }
+
+    suspend fun markArticleRead(articleId: Int) {
+        apiService.markArticleRead(articleId)
     }
 
     suspend fun getRecommendations(): List<CardView> {

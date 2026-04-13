@@ -1,1 +1,0 @@
--keep,allowobfuscation,allowshrinking class com.boancurator.app.ui.screens.bookmarks.BookmarksViewModel

@@ -1,7 +1,6 @@
 package com.boancurator.app.ui.screens.search
 
-import android.content.Intent
-import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -53,12 +52,20 @@ import com.boancurator.app.ui.theme.DarkCard
 import com.boancurator.app.ui.theme.TextMuted
 import com.boancurator.app.ui.theme.TextPrimary
 import com.boancurator.app.ui.theme.TextSecondary
+import androidx.navigation.NavController
+import com.boancurator.app.navigation.Screen
 
 @Composable
+<<<<<<< Updated upstream
 fun SearchRoute(
+=======
+fun SearchScreen(
+    navController: NavController,
+>>>>>>> Stashed changes
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val bookmarkMap by viewModel.bookmarkState.bookmarkMap.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     SearchScreen(
@@ -84,17 +91,9 @@ fun SearchScreen(
     onArticleClick: (CardView) -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkBackground)
+        modifier = Modifier.fillMaxSize().background(DarkBackground)
     ) {
-        Text(
-            text = "검색",
-            color = TextPrimary,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
-        )
+        Spacer(modifier = Modifier.height(8.dp))
 
         val tabs = listOf("AI 검색", "테마 검색")
         val selectedTab = if (uiState.searchMode == SearchMode.SEMANTIC) 0 else 1
@@ -149,7 +148,11 @@ fun SearchScreen(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
+<<<<<<< Updated upstream
                 SearchResults(uiState = uiState, onArticleClick = onArticleClick)
+=======
+                SearchResults(uiState = uiState, bookmarkMap = bookmarkMap, context = context, viewModel = viewModel, navController = navController)
+>>>>>>> Stashed changes
             }
 
             SearchMode.THEME -> {
@@ -177,7 +180,11 @@ fun SearchScreen(
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
+<<<<<<< Updated upstream
                 SearchResults(uiState = uiState, onArticleClick = onArticleClick)
+=======
+                SearchResults(uiState = uiState, bookmarkMap = bookmarkMap, context = context, viewModel = viewModel, navController = navController)
+>>>>>>> Stashed changes
             }
         }
     }
@@ -186,7 +193,14 @@ fun SearchScreen(
 @Composable
 private fun SearchResults(
     uiState: SearchUiState,
+<<<<<<< Updated upstream
     onArticleClick: (CardView) -> Unit,
+=======
+    bookmarkMap: Map<String, Int>,
+    context: android.content.Context,
+    viewModel: SearchViewModel,
+    navController: NavController
+>>>>>>> Stashed changes
 ) {
     when {
         uiState.isLoading -> {
@@ -207,12 +221,27 @@ private fun SearchResults(
         uiState.results.isNotEmpty() -> {
             LazyColumn(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                items(uiState.results, key = { it.url }) { article ->
+                items(uiState.results, key = { it.url ?: it.hashCode().toString() }) { article ->
                     ArticleCard(
                         article = article,
+<<<<<<< Updated upstream
                         onClick = { onArticleClick(article) }
+=======
+                        onClick = {
+                            article.url?.let {
+                                navController.navigate(Screen.ArticleDetail.createRoute(article.articleId, it))
+                            }
+                        },
+                        isBookmarked = (article.url ?: "") in bookmarkMap,
+                        onBookmarkClick = {
+                            val toggled = viewModel.toggleBookmark(article)
+                            if (!toggled) {
+                                Toast.makeText(context, "로그인 후 북마크할 수 있습니다", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+>>>>>>> Stashed changes
                     )
                 }
             }

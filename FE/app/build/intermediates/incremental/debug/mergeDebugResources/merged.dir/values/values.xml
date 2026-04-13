@@ -147,6 +147,12 @@
     <string name="default_error_message">"Invalid input"</string>
     <string name="default_popup_window_title" ns2:ignore="ExtraTranslation">"Pop-Up Window"</string>
     <string name="dropdown_menu">"Dropdown menu"</string>
+    <string name="fcm_fallback_notification_channel_label">Miscellaneous</string>
+    <string name="gcm_defaultSenderId" translatable="false">160086075742</string>
+    <string name="google_api_key" translatable="false">AIzaSyBuhtMuGr4BN-nYWzPSizGf0Pw1Gd0snis</string>
+    <string name="google_app_id" translatable="false">1:160086075742:android:79fec3eb986029f1fe87cf</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyBuhtMuGr4BN-nYWzPSizGf0Pw1Gd0snis</string>
+    <string name="google_storage_bucket" translatable="false">gen-lang-client-0647093603.firebasestorage.app</string>
     <string name="in_progress">In progress</string>
     <string name="indeterminate">Partially checked</string>
     <string name="m3c_bottom_sheet_collapse_description">Collapse bottom sheet</string>
@@ -212,6 +218,7 @@
     <string name="m3c_tooltip_pane_description">Tooltip</string>
     <string name="navigation_menu">"Navigation menu"</string>
     <string name="not_selected">Not selected</string>
+    <string name="project_id" translatable="false">gen-lang-client-0647093603</string>
     <string name="range_end">"Range end"</string>
     <string name="range_start">"Range start"</string>
     <string name="selected">Selected</string>

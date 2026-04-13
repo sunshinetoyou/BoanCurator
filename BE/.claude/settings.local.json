@@ -18,7 +18,18 @@
       "Bash(.venv/Scripts/python tests/test_scrapers.py Krebs)",
       "Bash(.venv/Scripts/python tests/test_rss_scrapers.py \"Unit 42\")",
       "Bash(.venv/Scripts/python tests/test_rss_scrapers.py Mandiant)",
-      "Bash(curl -s https://bc-api.danyeon.cloud/health)"
+      "Bash(curl -s https://bc-api.danyeon.cloud/health)",
+      "Bash(.venv/Scripts/python -m tests.test_sources)",
+      "Bash(.venv/Scripts/python -m tests.test_analyzers)",
+      "Bash(.venv/Scripts/pip install:*)",
+      "Bash(grep -n \"Field\\\\|validator\\\\|max_length\\\\|min_length\\\\|pattern\" \"/d/Github/BoanCurator/BE/api/v1/endpoints/\"*.py)",
+      "WebSearch",
+      "Bash(.venv/Scripts/python -m tests.test_ratings)",
+      "Bash(ls D:/Github/BoanCurator/BE/alembic*)",
+      "Bash(.venv/Scripts/alembic init:*)",
+      "Bash(.venv/Scripts/alembic revision:*)",
+      "Bash(.venv/Scripts/python -m tests.test_keywords)",
+      "Bash(sed 's/.*@router\\\\.//')"
     ]
   }
 }

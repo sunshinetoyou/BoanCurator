@@ -19,4 +19,7 @@ interface ArticleDao {
 
     @Query("DELETE FROM articles WHERE cachedAt < :before")
     suspend fun deleteOlderThan(before: Long)
+
+    @Query("DELETE FROM articles")
+    suspend fun deleteAll()
 }

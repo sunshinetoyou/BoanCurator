@@ -1,10 +1,14 @@
 {
     "logs": [
         {
-            "outputFile": "com.boancurator.app-mergeDebugResources-70:/values-watch-v20/values-watch-v20.xml",
+            "outputFile": "com.boancurator.app-mergeDebugResources-73:/values-watch-v20/values-watch-v20.xml",
             "map": [
                 {
+<<<<<<< Updated upstream
                     "source": "C:\\Users\\User\\.gradle\\caches\\8.11.1\\transforms\\ec85040710405ed3eb20750106ad9f85\\transformed\\play-services-auth-21.1.1\\res\\values-watch-v20\\values.xml",
+=======
+                    "source": "C:\\Users\\yeonsu\\.gradle\\caches\\8.11.1\\transforms\\3b48236ef9bc26a722ba06389bcd2276\\transformed\\play-services-auth-21.1.1\\res\\values-watch-v20\\values.xml",
+>>>>>>> Stashed changes
                     "from": {
                         "startLines": "4,5,6,7,8,9,10,11",
                         "startColumns": "0,0,0,0,0,0,0,0",

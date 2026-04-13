@@ -1,5 +1,6 @@
 package com.boancurator.app.data.api;
 
+import com.boancurator.app.data.repository.AuthStateManager;
 import com.boancurator.app.util.TokenManager;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
@@ -27,20 +28,26 @@ import javax.inject.Provider;
 public final class AuthInterceptor_Factory implements Factory<AuthInterceptor> {
   private final Provider<TokenManager> tokenManagerProvider;
 
-  public AuthInterceptor_Factory(Provider<TokenManager> tokenManagerProvider) {
+  private final Provider<AuthStateManager> authStateManagerProvider;
+
+  public AuthInterceptor_Factory(Provider<TokenManager> tokenManagerProvider,
+      Provider<AuthStateManager> authStateManagerProvider) {
     this.tokenManagerProvider = tokenManagerProvider;
+    this.authStateManagerProvider = authStateManagerProvider;
   }
 
   @Override
   public AuthInterceptor get() {
-    return newInstance(tokenManagerProvider.get());
+    return newInstance(tokenManagerProvider.get(), authStateManagerProvider.get());
   }
 
-  public static AuthInterceptor_Factory create(Provider<TokenManager> tokenManagerProvider) {
-    return new AuthInterceptor_Factory(tokenManagerProvider);
+  public static AuthInterceptor_Factory create(Provider<TokenManager> tokenManagerProvider,
+      Provider<AuthStateManager> authStateManagerProvider) {
+    return new AuthInterceptor_Factory(tokenManagerProvider, authStateManagerProvider);
   }
 
-  public static AuthInterceptor newInstance(TokenManager tokenManager) {
-    return new AuthInterceptor(tokenManager);
+  public static AuthInterceptor newInstance(TokenManager tokenManager,
+      AuthStateManager authStateManager) {
+    return new AuthInterceptor(tokenManager, authStateManager);
   }
 }
