@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session, select
-from sqlalchemy import extract, distinct
+from sqlalchemy import extract, distinct, Integer
 from typing import List, Optional
 
 from db.connection import get_session
@@ -48,9 +48,11 @@ def mark_article_read(
 @router.get("/cardnews/years", response_model=List[int])
 def get_available_years(session: Session = Depends(get_session)):
     """기사가 존재하는 연도 목록을 내림차순으로 반환"""
+    year_expr = extract("year", Article.published_at).cast(Integer)
     stmt = (
-        select(distinct(extract("year", Article.published_at).cast(int)))
+        select(year_expr)
         .where(Article.published_at.is_not(None))
-        .order_by(extract("year", Article.published_at).desc())
+        .distinct()
+        .order_by(year_expr.desc())
     )
-    return list(session.exec(stmt).all())
+    return [int(y) for y in session.exec(stmt).all()]
