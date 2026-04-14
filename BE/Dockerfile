@@ -6,11 +6,10 @@ RUN apt-get update && apt-get install -y \
     build-essential curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Claude CLI 설치 (~/.claude 는 런타임에 호스트 auth 디렉토리로 마운트되므로
-# 설치 결과물을 /opt/claude 로 옮겨 PATH 에 등록)
-RUN curl -fsSL https://claude.ai/install.sh | bash \
-    && mv /root/.claude /opt/claude
-ENV PATH="/opt/claude/bin:${PATH}"
+# Claude CLI 설치 — 바이너리는 /root/.local/bin/claude 로 설치되고
+# ~/.claude/ 는 캐시용이라 런타임 호스트 마운트와 충돌 없음
+RUN curl -fsSL https://claude.ai/install.sh | bash
+ENV PATH="/root/.local/bin:${PATH}"
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
