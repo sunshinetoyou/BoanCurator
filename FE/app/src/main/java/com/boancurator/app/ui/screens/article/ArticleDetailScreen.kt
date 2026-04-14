@@ -16,30 +16,39 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbUp
-import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.boancurator.app.data.model.ApiCategory
+import com.boancurator.app.data.model.ApiLevel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -56,6 +65,7 @@ import com.boancurator.app.ui.theme.TextPrimary
 import com.boancurator.app.ui.theme.TextSecondary
 import com.boancurator.app.ui.theme.Warning
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun ArticleDetailScreen(
@@ -67,21 +77,18 @@ fun ArticleDetailScreen(
     val context = LocalContext.current
     val bookmarkMap by viewModel.bookmarkState.bookmarkMap.collectAsStateWithLifecycle()
     val currentRating by viewModel.currentRating.collectAsStateWithLifecycle()
+    val cardView by viewModel.cardView.collectAsStateWithLifecycle()
     val isBookmarked = url in bookmarkMap
     var pageTitle by remember { mutableStateOf("") }
     var progress by remember { mutableIntStateOf(0) }
     var isLoading by remember { mutableStateOf(true) }
-    var isTranslated by remember { mutableStateOf(false) }
     var webViewRef by remember { mutableStateOf<WebView?>(null) }
+    var showSummarySheet by remember { mutableStateOf(false) }
+    val summarySheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    fun getTranslatedUrl(originalUrl: String): String {
-        val encoded = Uri.encode(originalUrl)
-        return "https://translate.google.com/translate?sl=auto&tl=ko&u=$encoded"
-    }
-
-    // Load rating for this article
-    androidx.compose.runtime.LaunchedEffect(articleId) {
+    androidx.compose.runtime.LaunchedEffect(articleId, url) {
         viewModel.loadRating(articleId)
+        viewModel.loadCardView(url)
     }
 
     Column(
@@ -169,17 +176,12 @@ fun ArticleDetailScreen(
                     )
                 }
 
-                // 번역 토글
-                IconButton(onClick = {
-                    isTranslated = !isTranslated
-                    webViewRef?.loadUrl(
-                        if (isTranslated) getTranslatedUrl(url) else url
-                    )
-                }) {
+                // AI 한국어 요약
+                IconButton(onClick = { showSummarySheet = true }) {
                     Icon(
-                        Icons.Filled.Translate,
-                        contentDescription = "번역",
-                        tint = if (isTranslated) Cyan else TextSecondary,
+                        Icons.Filled.Description,
+                        contentDescription = "AI 요약",
+                        tint = Cyan,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -229,6 +231,76 @@ fun ArticleDetailScreen(
                 color = Cyan,
                 trackColor = DarkCard
             )
+        }
+
+        // AI 요약 바텀시트
+        if (showSummarySheet) {
+            val card = cardView
+            ModalBottomSheet(
+                onDismissRequest = { showSummarySheet = false },
+                sheetState = summarySheetState,
+                containerColor = DarkCard,
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 8.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Text(
+                        text = "🤖 AI 요약",
+                        color = Cyan,
+                        fontSize = 13.sp
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = card?.title ?: pageTitle,
+                        color = TextPrimary,
+                        fontSize = 17.sp
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Row {
+                        card?.category?.let { cat ->
+                            Box(
+                                modifier = Modifier
+                                    .background(Cyan.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = ApiCategory.toKorean(cat),
+                                    color = Cyan,
+                                    fontSize = 11.sp
+                                )
+                            }
+                            Spacer(Modifier.size(6.dp))
+                        }
+                        card?.level?.let { lv ->
+                            val (label, color) = when (lv) {
+                                "Low" -> "초급" to com.boancurator.app.ui.theme.LevelBeginner
+                                "Medium" -> "중급" to com.boancurator.app.ui.theme.LevelIntermediate
+                                "High" -> "고급" to com.boancurator.app.ui.theme.LevelAdvanced
+                                else -> ApiLevel.toKorean(lv) to TextSecondary
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .background(color.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(text = label, color = color, fontSize = 11.sp)
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = card?.summary ?: "요약 정보가 없습니다.",
+                        color = TextPrimary,
+                        fontSize = 14.sp,
+                        lineHeight = 22.sp
+                    )
+                    Spacer(Modifier.height(24.dp))
+                }
+            }
         }
 
         // WebView

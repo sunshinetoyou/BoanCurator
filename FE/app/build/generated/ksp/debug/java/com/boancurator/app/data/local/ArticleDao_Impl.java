@@ -3,6 +3,7 @@ package com.boancurator.app.data.local;
 import android.database.Cursor;
 import android.os.CancellationSignal;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.room.CoroutinesRoom;
 import androidx.room.EntityInsertionAdapter;
 import androidx.room.RoomDatabase;
@@ -252,6 +253,95 @@ public final class ArticleDao_Impl implements ArticleDao {
             _tmpCachedAt = _cursor.getLong(_cursorIndexOfCachedAt);
             _item = new ArticleEntity(_tmpUrl,_tmpArticleId,_tmpSource,_tmpTitle,_tmpPublishedAt,_tmpImageUrls,_tmpSummary,_tmpThemes,_tmpLevel,_tmpCategory,_tmpCachedAt);
             _result.add(_item);
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+          _statement.release();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object getByUrl(final String url, final Continuation<? super ArticleEntity> $completion) {
+    final String _sql = "SELECT * FROM articles WHERE url = ? LIMIT 1";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
+    int _argIndex = 1;
+    _statement.bindString(_argIndex, url);
+    final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
+    return CoroutinesRoom.execute(__db, false, _cancellationSignal, new Callable<ArticleEntity>() {
+      @Override
+      @Nullable
+      public ArticleEntity call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfUrl = CursorUtil.getColumnIndexOrThrow(_cursor, "url");
+          final int _cursorIndexOfArticleId = CursorUtil.getColumnIndexOrThrow(_cursor, "articleId");
+          final int _cursorIndexOfSource = CursorUtil.getColumnIndexOrThrow(_cursor, "source");
+          final int _cursorIndexOfTitle = CursorUtil.getColumnIndexOrThrow(_cursor, "title");
+          final int _cursorIndexOfPublishedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "publishedAt");
+          final int _cursorIndexOfImageUrls = CursorUtil.getColumnIndexOrThrow(_cursor, "imageUrls");
+          final int _cursorIndexOfSummary = CursorUtil.getColumnIndexOrThrow(_cursor, "summary");
+          final int _cursorIndexOfThemes = CursorUtil.getColumnIndexOrThrow(_cursor, "themes");
+          final int _cursorIndexOfLevel = CursorUtil.getColumnIndexOrThrow(_cursor, "level");
+          final int _cursorIndexOfCategory = CursorUtil.getColumnIndexOrThrow(_cursor, "category");
+          final int _cursorIndexOfCachedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "cachedAt");
+          final ArticleEntity _result;
+          if (_cursor.moveToFirst()) {
+            final String _tmpUrl;
+            _tmpUrl = _cursor.getString(_cursorIndexOfUrl);
+            final Integer _tmpArticleId;
+            if (_cursor.isNull(_cursorIndexOfArticleId)) {
+              _tmpArticleId = null;
+            } else {
+              _tmpArticleId = _cursor.getInt(_cursorIndexOfArticleId);
+            }
+            final String _tmpSource;
+            _tmpSource = _cursor.getString(_cursorIndexOfSource);
+            final String _tmpTitle;
+            _tmpTitle = _cursor.getString(_cursorIndexOfTitle);
+            final String _tmpPublishedAt;
+            if (_cursor.isNull(_cursorIndexOfPublishedAt)) {
+              _tmpPublishedAt = null;
+            } else {
+              _tmpPublishedAt = _cursor.getString(_cursorIndexOfPublishedAt);
+            }
+            final String _tmpImageUrls;
+            if (_cursor.isNull(_cursorIndexOfImageUrls)) {
+              _tmpImageUrls = null;
+            } else {
+              _tmpImageUrls = _cursor.getString(_cursorIndexOfImageUrls);
+            }
+            final String _tmpSummary;
+            if (_cursor.isNull(_cursorIndexOfSummary)) {
+              _tmpSummary = null;
+            } else {
+              _tmpSummary = _cursor.getString(_cursorIndexOfSummary);
+            }
+            final String _tmpThemes;
+            if (_cursor.isNull(_cursorIndexOfThemes)) {
+              _tmpThemes = null;
+            } else {
+              _tmpThemes = _cursor.getString(_cursorIndexOfThemes);
+            }
+            final String _tmpLevel;
+            if (_cursor.isNull(_cursorIndexOfLevel)) {
+              _tmpLevel = null;
+            } else {
+              _tmpLevel = _cursor.getString(_cursorIndexOfLevel);
+            }
+            final String _tmpCategory;
+            if (_cursor.isNull(_cursorIndexOfCategory)) {
+              _tmpCategory = null;
+            } else {
+              _tmpCategory = _cursor.getString(_cursorIndexOfCategory);
+            }
+            final long _tmpCachedAt;
+            _tmpCachedAt = _cursor.getLong(_cursorIndexOfCachedAt);
+            _result = new ArticleEntity(_tmpUrl,_tmpArticleId,_tmpSource,_tmpTitle,_tmpPublishedAt,_tmpImageUrls,_tmpSummary,_tmpThemes,_tmpLevel,_tmpCategory,_tmpCachedAt);
+          } else {
+            _result = null;
           }
           return _result;
         } finally {

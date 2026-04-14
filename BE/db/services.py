@@ -70,16 +70,51 @@ def get_article_by_url(session: Session, url: str):
     return session.exec(select(Article).where(Article.url == url)).first()
 
 
+MAX_ANALYSIS_ATTEMPTS = 2
+
+
 def get_next_article_to_analyze(session: Session) -> Optional[Article]:
-    """분석(Analysis) 데이터가 없는 가장 오래된 기사 하나를 가져옵니다."""
+    """분석(Analysis) 데이터가 없고, 실패 누적이 한계 미만인 기사 하나를 가져옵니다."""
     statement = (
         select(Article)
         .outerjoin(Analysis, Article.id == Analysis.article_id)
+        .outerjoin(AnalysisFailure, Article.id == AnalysisFailure.article_id)
         .where(Analysis.id == None)  # noqa: E711
+        .where(
+            or_(
+                AnalysisFailure.id == None,  # noqa: E711
+                AnalysisFailure.attempt_count < MAX_ANALYSIS_ATTEMPTS,
+            )
+        )
         .order_by(Article.published_at.asc())
         .limit(1)
     )
     return session.exec(statement).first()
+
+
+def record_analysis_failure(session: Session, article_id: int, error: str) -> AnalysisFailure:
+    """기사 분석 실패를 영속화. 동일 기사에 대해서는 attempt_count만 증가."""
+    existing = session.exec(
+        select(AnalysisFailure).where(AnalysisFailure.article_id == article_id)
+    ).first()
+    if existing:
+        existing.attempt_count += 1
+        existing.last_attempted_at = datetime.now()
+        existing.last_error = (error or "")[:500]
+        session.add(existing)
+        session.commit()
+        session.refresh(existing)
+        return existing
+
+    failure = AnalysisFailure(
+        article_id=article_id,
+        attempt_count=1,
+        last_error=(error or "")[:500],
+    )
+    session.add(failure)
+    session.commit()
+    session.refresh(failure)
+    return failure
 
 
 # ── 카드뉴스 조회 ──

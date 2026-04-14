@@ -2,6 +2,7 @@ package com.boancurator.app.ui.screens.article
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.boancurator.app.data.model.CardView
 import com.boancurator.app.data.repository.ArticleRepository
 import com.boancurator.app.data.repository.AuthRepository
 import com.boancurator.app.data.repository.BookmarkRepository
@@ -26,6 +27,16 @@ class ArticleDetailViewModel @Inject constructor(
 
     private val _currentRating = MutableStateFlow<Int?>(null)
     val currentRating: StateFlow<Int?> = _currentRating
+
+    private val _cardView = MutableStateFlow<CardView?>(null)
+    val cardView: StateFlow<CardView?> = _cardView
+
+    fun loadCardView(url: String) {
+        viewModelScope.launch {
+            try { _cardView.value = articleRepository.getCachedByUrl(url) }
+            catch (_: Exception) {}
+        }
+    }
 
     private val isLoggedIn: Boolean get() = authRepository.isLoggedIn.value
 

@@ -30,6 +30,10 @@ class ArticleRepository @Inject constructor(
         return articleDao.getAll().map { it.toCardView() }
     }
 
+    suspend fun getCachedByUrl(url: String): CardView? {
+        return articleDao.getByUrl(url)?.toCardView()
+    }
+
     suspend fun hasCachedData(): Boolean {
         return articleDao.count() > 0
     }

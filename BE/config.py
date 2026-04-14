@@ -6,21 +6,10 @@ class Settings(BaseSettings):
     database_user: str = ""
     database_pw: str = ""
 
-    # 분석 엔진 선택
-    analysis_engine: str = "gemini"  # "gemini" | "claude" | "ollama"
-
     # Gemini
     gemini_api_keys: str = ""
     gemini_model: str = ""
     max_content_length: int = 16000
-
-    # Claude (Anthropic)
-    anthropic_api_key: str = ""
-    claude_model: str = "claude-sonnet-4-6"
-
-    # Ollama (로컬 LLM)
-    ollama_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3"
 
     # 이미지 수집
     max_images_per_article: int = 5

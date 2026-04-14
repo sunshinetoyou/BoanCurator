@@ -78,6 +78,14 @@ class Analysis(AnalysisData, table=True):
     article: Optional[Article] = Relationship(back_populates="analysis")
 
 
+class AnalysisFailure(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    article_id: int = Field(foreign_key="article.id", unique=True, index=True)
+    attempt_count: int = Field(default=1)
+    last_attempted_at: datetime = Field(default_factory=datetime.now)
+    last_error: Optional[str] = None
+
+
 # ── 커스텀 소스 ──
 
 class CustomSource(SQLModel, table=True):
