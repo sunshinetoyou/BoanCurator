@@ -27,6 +27,8 @@ from db.models import Article, Analysis, AnalysisFailure, AnalysisData, Category
 from db import services
 from workers.analysis_bot import process_one_article
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_schema():

@@ -24,7 +24,7 @@ RSS_SOURCES = [
 ]
 
 
-def test_one(cfg, max_articles=2):
+def _check_source(cfg, max_articles=2):
     name = cfg["source_name"]
     print(f"\n{'='*60}")
     print(f"  {name}")
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     for cfg in RSS_SOURCES:
         if target and target not in cfg["source_name"].lower():
             continue
-        results.append(test_one(cfg))
+        results.append(_check_source(cfg))
 
     print(f"\n{'='*60}")
     print(f"  SUMMARY")

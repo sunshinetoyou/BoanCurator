@@ -5,3 +5,5 @@ BE/postgres_data/
 BE/images_data/
 
 __pycache__/
+.pytest_cache/
+.coverage

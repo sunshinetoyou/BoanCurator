@@ -11,7 +11,7 @@ from scrapers.sser import BoanNewsScraper, GeekNewsScraper, S2WScraper
 from scrapers.rsser import RSSGenericScraper
 
 
-def test_scraper(scraper, max_articles=3):
+def _check_scraper(scraper, max_articles=3):
     name = getattr(scraper, 'source_name', scraper.__class__.__name__)
     print(f"\n{'='*60}")
     print(f"  {name}")
@@ -58,4 +58,4 @@ if __name__ == "__main__":
     for name, scraper in scrapers:
         if target and target.lower() not in name.lower():
             continue
-        test_scraper(scraper)
+        _check_scraper(scraper)
