@@ -1,4 +1,5 @@
 import ipaddress
+import logging
 import socket
 from urllib.parse import urlparse
 
@@ -14,6 +15,8 @@ from bs4 import BeautifulSoup
 from db.connection import get_session
 from db.models import CustomSource, User
 from api.deps import get_current_user
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -114,8 +117,8 @@ def _detect_rss_feed(url: str) -> dict | None:
                 "sample_count": len(feed.entries),
                 "sample_title": feed.entries[0].get("title", ""),
             }
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"RSS 탐지 중 HTML fetch/parse 실패 ({url}): {e}")
 
     return None
 
