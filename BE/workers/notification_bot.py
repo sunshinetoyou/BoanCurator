@@ -1,5 +1,4 @@
 import logging
-import time
 from datetime import datetime, timedelta
 
 from sqlmodel import Session, select, func
@@ -10,6 +9,7 @@ from db.models import (
 )
 from db.vector_store import match_article_to_keywords
 from utils.fcm import send_fcm_notification
+from workers._shutdown import install_shutdown_handler
 
 logging.basicConfig(
     level=logging.INFO,
@@ -137,11 +137,12 @@ def _process_article(session: Session, article: Article, analysis: Analysis):
 
 def run_notification_bot():
     init_db()
+    shutdown = install_shutdown_handler()
     logger.info("Notification Bot 가동 중...")
 
     last_check_id = 0
 
-    while True:
+    while not shutdown.is_set():
         with Session(engine) as session:
             # 마지막 체크 이후 새로 분석된 기사 조회
             new_analyses = session.exec(
@@ -151,6 +152,8 @@ def run_notification_bot():
             ).all()
 
             for analysis in new_analyses:
+                if shutdown.is_set():
+                    break
                 article = session.exec(
                     select(Article).where(Article.id == analysis.article_id)
                 ).first()
@@ -162,7 +165,9 @@ def run_notification_bot():
 
                 last_check_id = analysis.id
 
-        time.sleep(60)  # 1분마다 체크
+        shutdown.wait(60)  # 1분마다 체크 (interruptible)
+
+    logger.info("Notification Bot 종료")
 
 
 if __name__ == "__main__":

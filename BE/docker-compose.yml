@@ -23,6 +23,7 @@ services:
   api:
     build: .
     container_name: boan_api
+    stop_grace_period: 30s
     command: bash -c "alembic upgrade head && uvicorn api.main:app --host 0.0.0.0 --port 11278"
     ports:
       - "11278:11278"
@@ -39,6 +40,7 @@ services:
   scraper_worker:
     build: .
     container_name: boan_scraper
+    stop_grace_period: 30s
     command: python -m workers.new_scraper_bot
     depends_on:
       db:
@@ -50,6 +52,7 @@ services:
   analysis_worker:
     build: .
     container_name: boan_analyzer
+    stop_grace_period: 30s
     command: python -m workers.analysis_bot
     depends_on:
       db:
@@ -65,6 +68,7 @@ services:
   notification_worker:
     build: .
     container_name: boan_notifier
+    stop_grace_period: 30s
     command: python -m workers.notification_bot
     depends_on:
       db:

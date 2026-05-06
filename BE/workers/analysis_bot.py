@@ -1,7 +1,7 @@
 import logging
-import time
 from sqlmodel import Session
 from db import services, engine, init_db
+from workers._shutdown import install_shutdown_handler
 
 logging.basicConfig(
     level=logging.INFO,
@@ -79,16 +79,19 @@ def run_analysis_bot():
 
     init_db()
     analyzer = create_analyzer()
+    shutdown = install_shutdown_handler()
     logger.info(f"Analysis Bot 가동 중 ({type(analyzer).__name__})...")
 
-    while True:
+    while not shutdown.is_set():
         with Session(engine) as session:
             status = process_one_article(session, analyzer, store_embedding)
 
         if status == "idle":
-            time.sleep(IDLE_SLEEP_SECONDS)
+            shutdown.wait(IDLE_SLEEP_SECONDS)
         elif status == "failed":
-            time.sleep(FAILURE_SLEEP_SECONDS)
+            shutdown.wait(FAILURE_SLEEP_SECONDS)
+
+    logger.info("Analysis Bot 종료")
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ from sqlmodel import Session, select
 from db import services, engine, init_db
 from db.models import CustomSource
 from scrapers.registry import get_system_scrapers, get_custom_scrapers
+from workers._shutdown import install_shutdown_handler
 
 logging.basicConfig(
     level=logging.INFO,
@@ -77,8 +78,9 @@ def _run_custom_scrapers(pool: ThreadPoolExecutor):
 
 def run_scraper_bot():
     init_db()
+    shutdown = install_shutdown_handler()
 
-    # 시스템 스크래퍼: 상시 쓰레드
+    # 시스템 스크래퍼: 상시 쓰레드 (daemon — main 종료 시 자동 종료)
     system_scrapers = get_system_scrapers()
     for s in system_scrapers:
         threading.Thread(target=scraper_thread, args=(s,), daemon=True).start()
@@ -89,8 +91,9 @@ def run_scraper_bot():
     threading.Thread(target=_run_custom_scrapers, args=(pool,), daemon=True).start()
     logger.info("커스텀 소스 매니저 가동")
 
-    while True:
-        time.sleep(1)
+    shutdown.wait()  # SIGTERM 까지 대기 (interruptible, busy loop 회피)
+    logger.info("Scraper Bot 종료 — ThreadPoolExecutor shutdown")
+    pool.shutdown(wait=False, cancel_futures=True)
 
 
 if __name__ == "__main__":
