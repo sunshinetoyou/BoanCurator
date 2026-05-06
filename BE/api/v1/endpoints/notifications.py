@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from sqlmodel import Session, select
 from typing import Optional
 
-from api.deps import get_current_user
+from api.deps import PaginationParams, get_current_user
 from db.connection import get_session
 from db.models import User, UserNotificationSettings, NotificationLog
 
@@ -96,16 +96,15 @@ def register_fcm_token(
 def get_notification_log(
     user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
-    offset: int = Query(default=0, ge=0, le=10000),
-    limit: int = Query(default=20, ge=1, le=100),
+    pag: PaginationParams = Depends(),
 ):
     """알림 이력 조회"""
     logs = session.exec(
         select(NotificationLog)
         .where(NotificationLog.user_id == user.id)
         .order_by(NotificationLog.sent_at.desc())
-        .offset(offset)
-        .limit(limit)
+        .offset(pag.offset)
+        .limit(pag.limit)
     ).all()
     return [
         {

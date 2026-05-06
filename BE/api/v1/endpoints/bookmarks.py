@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlmodel import Session
 
-from api.deps import get_current_user
+from api.deps import PaginationParams, get_current_user
 from db.connection import get_session
 from db.models import User
 from db import services
@@ -25,13 +25,12 @@ def create_bookmark(
 
 @router.get("/bookmarks", response_model=List[BookmarkView])
 def get_bookmarks(
-    offset: int = Query(default=0, ge=0),
-    limit: int = Query(default=20, le=100),
+    pag: PaginationParams = Depends(),
     user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
     """현재 유저의 북마크 목록 조회"""
-    return services.get_user_bookmarks(session, user.id, offset, limit)
+    return services.get_user_bookmarks(session, user.id, pag.offset, pag.limit)
 
 
 @router.delete("/bookmarks/{bookmark_id}")

@@ -7,7 +7,7 @@ from db.connection import get_session
 from db.models import Article, User, Category, Level
 from schemas import PaginatedResponse
 from db.services import get_card_view_list, record_article_read
-from api.deps import get_optional_user
+from api.deps import PaginationParams, get_optional_user
 
 router = APIRouter()
 
@@ -18,15 +18,14 @@ def read_dashboard(
     user: Optional[User] = Depends(get_optional_user),
     category: Optional[Category] = Query(default=None),
     level: Optional[Level] = Query(default=None),
-    offset: int = Query(default=0, ge=0, le=100000),
-    limit: int = Query(default=20, ge=1, le=100),
+    pag: PaginationParams = Depends(),
 ):
     return get_card_view_list(
         session=session,
         category=category,
         level=level,
-        offset=offset,
-        limit=limit,
+        offset=pag.offset,
+        limit=pag.limit,
         user_expertise=user.expertise if user else None,
         level_preference=(user.level_preference or 3.0) if user else 3.0,
     )

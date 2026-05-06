@@ -9,6 +9,7 @@ import requests
 from config import settings
 from db.connection import get_session
 from db import services
+from api.deps import load_user_or_401
 
 router = APIRouter()
 
@@ -121,9 +122,7 @@ def refresh_token(
     if user_id is None:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-    user = services.get_user_by_id(session, user_id)
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
+    user = load_user_or_401(session, user_id)
 
     # 새 토큰 쌍 발급 (refresh token rotation)
     new_access = _create_access_token(user.id, user.email)
