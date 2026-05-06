@@ -55,7 +55,7 @@ def save_analysis(session: Session, article_id: int, analysis_data: AnalysisData
     except Exception as e:
         session.rollback()
         logger.error(f"분석 결과 저장 실패 (기사 ID {article_id}): {e}")
-        return None
+        raise
 
 
 def is_already_analyzed(session: Session, url: str) -> bool:
