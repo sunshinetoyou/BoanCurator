@@ -134,7 +134,7 @@ def test_create_bookmark_creates_new_and_calls_expertise_update():
     session = MagicMock()
     session.exec.return_value = _exec_returns_first(None)  # 기존 북마크 없음
 
-    with patch.object(services, "_update_expertise_on_action") as mock_update:
+    with patch.object(services.users, "_update_expertise_on_action") as mock_update:
         result = services.create_bookmark(session, user_id=1, article_id=10)
 
     assert result.user_id == 1
@@ -298,7 +298,7 @@ def test_update_expertise_calls_update_user_expertise_and_session_add():
     session.exec.return_value = _exec_returns_first(analysis)
 
     new_expertise = {"network_infra": 2.5}
-    with patch.object(services, "update_user_expertise", return_value=new_expertise) as mock_upd:
+    with patch.object(services.users, "update_user_expertise", return_value=new_expertise) as mock_upd:
         services._update_expertise_on_action(session, user_id=1, article_id=10, action="bookmark")
 
     mock_upd.assert_called_once_with({"network_infra": 2}, {"network_infra": 3}, "bookmark")
@@ -362,8 +362,8 @@ def test_rate_article_skips_user_updates_when_user_missing():
     session.exec.side_effect = _exec_side_effect_for_rate(None, analysis)
     session.get.return_value = None
 
-    with patch.object(services, "update_level_preference_elo") as elo, \
-         patch.object(services, "update_expertise_on_rating") as exp:
+    with patch.object(services.ratings, "update_level_preference_elo") as elo, \
+         patch.object(services.ratings, "update_expertise_on_rating") as exp:
         services.rate_article(session, user_id=1, article_id=10, rating=1)
 
     elo.assert_not_called()
@@ -377,8 +377,8 @@ def test_rate_article_skips_user_updates_when_analysis_missing():
     session.exec.side_effect = _exec_side_effect_for_rate(None, None)
     session.get.return_value = _full_user()
 
-    with patch.object(services, "update_level_preference_elo") as elo, \
-         patch.object(services, "update_expertise_on_rating") as exp:
+    with patch.object(services.ratings, "update_level_preference_elo") as elo, \
+         patch.object(services.ratings, "update_expertise_on_rating") as exp:
         services.rate_article(session, user_id=1, article_id=10, rating=1)
 
     elo.assert_not_called()
@@ -393,8 +393,8 @@ def test_rate_article_skips_user_updates_when_domain_scores_empty():
     session.exec.side_effect = _exec_side_effect_for_rate(None, analysis)
     session.get.return_value = _full_user()
 
-    with patch.object(services, "update_level_preference_elo") as elo, \
-         patch.object(services, "update_expertise_on_rating") as exp:
+    with patch.object(services.ratings, "update_level_preference_elo") as elo, \
+         patch.object(services.ratings, "update_expertise_on_rating") as exp:
         services.rate_article(session, user_id=1, article_id=10, rating=1)
 
     elo.assert_not_called()
@@ -411,9 +411,9 @@ def test_rate_article_liked_true_when_rating_is_1():
     session.exec.side_effect = _exec_side_effect_for_rate(None, analysis)
     session.get.return_value = user
 
-    with patch.object(services, "update_level_preference_elo", return_value=3.2) as elo, \
-         patch.object(services, "calculate_relative_difficulty", return_value="Medium"), \
-         patch.object(services, "update_expertise_on_rating", return_value=user.expertise) as exp:
+    with patch.object(services.ratings, "update_level_preference_elo", return_value=3.2) as elo, \
+         patch.object(services.ratings, "calculate_relative_difficulty", return_value="Medium"), \
+         patch.object(services.ratings, "update_expertise_on_rating", return_value=user.expertise) as exp:
         services.rate_article(session, user_id=1, article_id=10, rating=1)
 
     elo.assert_called_once_with(3.0, "Medium", True)
@@ -430,9 +430,9 @@ def test_rate_article_liked_false_when_rating_is_negative_1():
     session.exec.side_effect = _exec_side_effect_for_rate(None, analysis)
     session.get.return_value = user
 
-    with patch.object(services, "update_level_preference_elo", return_value=2.8) as elo, \
-         patch.object(services, "calculate_relative_difficulty", return_value="Easy"), \
-         patch.object(services, "update_expertise_on_rating", return_value=user.expertise) as exp:
+    with patch.object(services.ratings, "update_level_preference_elo", return_value=2.8) as elo, \
+         patch.object(services.ratings, "calculate_relative_difficulty", return_value="Easy"), \
+         patch.object(services.ratings, "update_expertise_on_rating", return_value=user.expertise) as exp:
         services.rate_article(session, user_id=1, article_id=10, rating=-1)
 
     elo.assert_called_once_with(3.0, "Medium", False)
@@ -450,9 +450,9 @@ def test_rate_article_full_flow_updates_user_state():
     session.get.return_value = user
 
     new_expertise = {"network_infra": 2.6}
-    with patch.object(services, "update_level_preference_elo", return_value=3.5), \
-         patch.object(services, "calculate_relative_difficulty", return_value="Medium") as rel, \
-         patch.object(services, "update_expertise_on_rating", return_value=new_expertise):
+    with patch.object(services.ratings, "update_level_preference_elo", return_value=3.5), \
+         patch.object(services.ratings, "calculate_relative_difficulty", return_value="Medium") as rel, \
+         patch.object(services.ratings, "update_expertise_on_rating", return_value=new_expertise):
         services.rate_article(session, user_id=1, article_id=10, rating=1)
 
     assert user.level_preference == 3.5

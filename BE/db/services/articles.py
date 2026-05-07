@@ -1,21 +1,24 @@
+"""Article 도메인: CRUD, 분석 저장/실패 기록, 카드뉴스/검색 조회."""
 import logging
-from sqlmodel import Session, select, func
-from sqlalchemy import or_, and_, any_
-
-from .models import *
-from schemas import BookmarkView, CardView, PaginatedResponse, ThemeSearchRequest
-from .difficulty import (
-    calculate_relative_difficulty,
-    update_user_expertise,
-    update_level_preference_elo,
-    update_expertise_on_rating,
-)
-
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
+
+from sqlmodel import Session, select, func
+from sqlalchemy import or_, and_
+
+from ..models import (
+    Article, Analysis, AnalysisData, AnalysisFailure, Category, Level,
+)
+from schemas import CardView, PaginatedResponse, ThemeSearchRequest
+from ..difficulty import calculate_relative_difficulty
 
 logger = logging.getLogger(__name__)
 
+
+MAX_ANALYSIS_ATTEMPTS = 2
+
+
+# ── 기사 CRUD ──
 
 def is_article_exists(session: Session, url: str) -> bool:
     """URL 기준으로 기사 중복 체크"""
@@ -68,9 +71,6 @@ def is_already_analyzed(session: Session, url: str) -> bool:
 
 def get_article_by_url(session: Session, url: str):
     return session.exec(select(Article).where(Article.url == url)).first()
-
-
-MAX_ANALYSIS_ATTEMPTS = 2
 
 
 def get_next_article_to_analyze(session: Session) -> Optional[Article]:
@@ -194,7 +194,6 @@ def get_card_views_by_ids(
     )
     rows = session.exec(statement).all()
 
-    # ID → CardView 매핑
     card_map = {}
     for row in rows:
         card = CardView.model_validate(row)
@@ -204,7 +203,6 @@ def get_card_views_by_ids(
             )
         card_map[card.article_id] = card
 
-    # 입력 순서(distance 순) 유지
     return [card_map[aid] for aid in article_ids if aid in card_map]
 
 
@@ -241,11 +239,9 @@ def _build_theme_search_query(req: ThemeSearchRequest, mode: str):
     if req.themes:
         theme_values = [t.value if hasattr(t, "value") else t for t in req.themes]
         if mode == "any":
-            # ANY: themes 배열에 요청된 테마 중 하나라도 포함
             filters = [Analysis.themes.any(tv) for tv in theme_values]
             statement = statement.where(or_(*filters))
         else:
-            # ALL: themes 배열에 요청된 테마가 모두 포함
             filters = [Analysis.themes.any(tv) for tv in theme_values]
             statement = statement.where(and_(*filters))
 
@@ -303,238 +299,3 @@ def get_active_themes(session: Session) -> List[str]:
     )
     results = session.execute(query).all()
     return [row[0] for row in results]
-
-
-# ── 사용자 ──
-
-def get_or_create_user_by_google(
-    session: Session,
-    google_id: str,
-    email: str,
-    username: str,
-    profile_image: Optional[str] = None,
-) -> "User":
-    """Google 계정으로 사용자 조회 또는 생성"""
-    user = session.exec(select(User).where(User.google_id == google_id)).first()
-    if user:
-        # 프로필 정보 업데이트
-        user.username = username
-        user.email = email
-        if profile_image:
-            user.profile_image = profile_image
-        session.add(user)
-        session.commit()
-        session.refresh(user)
-        return user
-
-    user = User(
-        google_id=google_id,
-        email=email,
-        username=username,
-        profile_image=profile_image,
-    )
-    session.add(user)
-    session.commit()
-    session.refresh(user)
-    return user
-
-
-def get_user_by_id(session: Session, user_id: int) -> Optional["User"]:
-    return session.get(User, user_id)
-
-
-# ── 북마크 ──
-
-def create_bookmark(session: Session, user_id: int, article_id: int) -> "Bookmark":
-    """북마크 생성 (중복 시 기존 반환) + 유저 expertise 자동 업데이트"""
-    existing = session.exec(
-        select(Bookmark).where(
-            Bookmark.user_id == user_id,
-            Bookmark.article_id == article_id,
-        )
-    ).first()
-    if existing:
-        return existing
-
-    bookmark = Bookmark(user_id=user_id, article_id=article_id)
-    session.add(bookmark)
-
-    # 유저 expertise 자동 업데이트 (EMA)
-    _update_expertise_on_action(session, user_id, article_id, "bookmark")
-
-    session.commit()
-    session.refresh(bookmark)
-    return bookmark
-
-
-def _update_expertise_on_action(
-    session: Session, user_id: int, article_id: int, action: str
-):
-    """기사의 domain_scores를 기반으로 유저 expertise를 EMA 업데이트"""
-    user = session.get(User, user_id)
-    analysis = session.exec(
-        select(Analysis).where(Analysis.article_id == article_id)
-    ).first()
-
-    if not user or not analysis or not analysis.domain_scores:
-        return
-
-    user.expertise = update_user_expertise(
-        user.expertise, analysis.domain_scores, action
-    )
-    session.add(user)
-
-
-def delete_bookmark(session: Session, bookmark_id: int, user_id: int) -> bool:
-    """북마크 삭제 (소유자 확인)"""
-    bookmark = session.exec(
-        select(Bookmark).where(
-            Bookmark.id == bookmark_id,
-            Bookmark.user_id == user_id,
-        )
-    ).first()
-    if not bookmark:
-        return False
-    session.delete(bookmark)
-    session.commit()
-    return True
-
-
-def get_user_bookmarks(
-    session: Session,
-    user_id: int,
-    offset: int = 0,
-    limit: int = 20,
-) -> list[dict]:
-    """사용자의 북마크 목록 조회"""
-    statement = (
-        select(
-            Bookmark.id.label("bookmark_id"),
-            Article.id.label("article_id"),
-            Article.source, Article.url, Article.title,
-            Article.published_at, Article.image_urls,
-            Analysis.summary, Analysis.themes, Analysis.level, Analysis.category,
-            Analysis.domain_scores,
-            Bookmark.created_at.label("bookmarked_at"),
-        )
-        .join(Article, Bookmark.article_id == Article.id)
-        .join(Analysis, Article.id == Analysis.article_id)
-        .where(Bookmark.user_id == user_id)
-        .order_by(Bookmark.created_at.desc())
-        .offset(offset)
-        .limit(limit)
-    )
-    rows = session.exec(statement).all()
-    return [BookmarkView.model_validate(row) for row in rows]
-
-
-def record_article_read(session: Session, user_id: int, article_id: int):
-    """기사 읽음 이벤트 → 유저 expertise 자동 업데이트"""
-    _update_expertise_on_action(session, user_id, article_id, "read")
-    session.commit()
-
-
-def get_user_stats(session: Session, user_id: int) -> dict:
-    """유저 활동 통계: 북마크 수 + 도메인별 관심 분포"""
-    bookmark_count = session.exec(
-        select(func.count()).where(Bookmark.user_id == user_id)
-    ).one()
-
-    # 북마크한 기사들의 domain_scores 조회
-    rows = session.exec(
-        select(Analysis.domain_scores)
-        .join(Bookmark, Bookmark.article_id == Analysis.article_id)
-        .where(Bookmark.user_id == user_id)
-        .where(Analysis.domain_scores.isnot(None))
-    ).all()
-
-    domain_distribution = {d: 0 for d in SECURITY_DOMAINS}
-    for scores in rows:
-        if not scores:
-            continue
-        primary = max(scores, key=scores.get)
-        domain_distribution[primary] += 1
-
-    return {
-        "bookmark_count": bookmark_count,
-        "domain_distribution": domain_distribution,
-    }
-
-
-# ── 기사 평가 ──
-
-def rate_article(session: Session, user_id: int, article_id: int, rating: int) -> ArticleRating:
-    """기사 평가 (좋아요=1, 싫어요=-1). 기존 평가 있으면 덮어쓰기.
-    Elo로 level_preference 업데이트 + 방법B로 expertise 업데이트."""
-    # 기존 평가 조회/생성
-    existing = session.exec(
-        select(ArticleRating).where(
-            ArticleRating.user_id == user_id,
-            ArticleRating.article_id == article_id,
-        )
-    ).first()
-
-    if existing:
-        existing.rating = rating
-        session.add(existing)
-        article_rating = existing
-    else:
-        article_rating = ArticleRating(
-            user_id=user_id, article_id=article_id, rating=rating
-        )
-        session.add(article_rating)
-
-    # analysis 조회
-    analysis = session.exec(
-        select(Analysis).where(Analysis.article_id == article_id)
-    ).first()
-
-    user = session.get(User, user_id)
-    if user and analysis and analysis.domain_scores:
-        liked = rating == 1
-
-        # 1. Elo로 level_preference 업데이트
-        user.level_preference = update_level_preference_elo(
-            user.level_preference, analysis.level, liked
-        )
-
-        # 2. 체감 난이도 계산
-        rel_diff = calculate_relative_difficulty(
-            analysis.level, analysis.domain_scores,
-            user.expertise, user.level_preference,
-        )
-
-        # 3. 방법B로 expertise 업데이트
-        user.expertise = update_expertise_on_rating(
-            user.expertise, analysis.domain_scores, rel_diff, liked
-        )
-
-        session.add(user)
-
-    session.commit()
-    session.refresh(article_rating)
-    return article_rating
-
-
-def get_user_ratings(session: Session, user_id: int) -> list[ArticleRating]:
-    """유저의 평가 목록"""
-    return list(session.exec(
-        select(ArticleRating)
-        .where(ArticleRating.user_id == user_id)
-        .order_by(ArticleRating.created_at.desc())
-    ).all())
-
-
-def delete_rating(session: Session, user_id: int, article_id: int) -> bool:
-    """평가 취소"""
-    existing = session.exec(
-        select(ArticleRating).where(
-            ArticleRating.user_id == user_id,
-            ArticleRating.article_id == article_id,
-        )
-    ).first()
-    if not existing:
-        return False
-    session.delete(existing)
-    session.commit()
-    return True
