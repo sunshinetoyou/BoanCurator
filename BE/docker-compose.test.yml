@@ -1,0 +1,29 @@
+# Integration test 전용 PostgreSQL.
+#
+# 사용법:
+#   docker compose -f docker-compose.test.yml up -d
+#   .venv/bin/pytest -m integration
+#   docker compose -f docker-compose.test.yml down -v
+#
+# 메인 docker-compose.yml 의 db (포트 5432) 와 충돌하므로
+# 메인 db 가 떠있다면 먼저 `docker compose stop db` 후 실행.
+#
+# tmpfs 로 데이터 휘발 → 매 실행마다 깨끗한 상태.
+
+services:
+  test_db:
+    image: postgres:17
+    container_name: boan_test_db
+    environment:
+      POSTGRES_USER: boan
+      POSTGRES_PASSWORD: boan
+      POSTGRES_DB: boan_test
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U boan -d boan_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    tmpfs:
+      - /var/lib/postgresql/data
