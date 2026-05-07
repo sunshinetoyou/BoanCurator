@@ -5,6 +5,9 @@
   - record_analysis_failure: 첫 실패 / 재시도 increment / 에러 메시지 500자 truncate
   - create_bookmark: 기존 존재 시 재사용 / 새 생성 시 expertise 업데이트
   - delete_bookmark: 소유자 일치 / 불일치
+  - get_or_create_user_by_google: 신규 생성 / 기존 갱신 / profile_image None 보존
+  - _update_expertise_on_action: user/analysis/domain_scores 누락 시 silent return / 정상 갱신
+  - rate_article: 신규 / 덮어쓰기 / 평가 부가 효과(Elo + expertise) 분기
 
 mock session 패턴은 test_services_save_analysis.py 와 동일.
 """
@@ -21,7 +24,14 @@ sys.path.insert(0, str(BE_DIR))
 import pytest
 
 from db import services
-from db.models import Article, AnalysisFailure, Bookmark
+from db.models import (
+    Analysis,
+    AnalysisFailure,
+    Article,
+    ArticleRating,
+    Bookmark,
+    User,
+)
 
 
 # ── save_article ────────────────────────────────────────
@@ -157,3 +167,298 @@ def test_delete_bookmark_owner_mismatch_returns_false():
     assert result is False
     session.delete.assert_not_called()
     session.commit.assert_not_called()
+
+
+# ── get_or_create_user_by_google ────────────────────────────────────────
+
+def test_get_or_create_user_creates_new_when_not_found():
+    """google_id 로 기존 유저가 없으면 새 User 를 만들고 add/commit/refresh."""
+    session = MagicMock()
+    session.exec.return_value = _exec_returns_first(None)
+
+    result = services.get_or_create_user_by_google(
+        session,
+        google_id="g1",
+        email="a@x.com",
+        username="alice",
+        profile_image="http://img/a.png",
+    )
+
+    assert result.google_id == "g1"
+    assert result.email == "a@x.com"
+    assert result.username == "alice"
+    assert result.profile_image == "http://img/a.png"
+    session.add.assert_called_once()
+    session.commit.assert_called_once()
+    session.refresh.assert_called_once()
+
+
+def test_get_or_create_user_updates_existing_username_and_email():
+    """기존 유저 발견 시 username/email 을 새 값으로 갱신하고 commit."""
+    existing = User(id=1, google_id="g1", email="old@x.com", username="old")
+    session = MagicMock()
+    session.exec.return_value = _exec_returns_first(existing)
+
+    result = services.get_or_create_user_by_google(
+        session,
+        google_id="g1",
+        email="new@x.com",
+        username="new",
+    )
+
+    assert result is existing
+    assert result.email == "new@x.com"
+    assert result.username == "new"
+    session.commit.assert_called_once()
+
+
+def test_get_or_create_user_preserves_profile_image_when_none_passed():
+    """profile_image=None 이면 기존 값 유지 (회귀 방지: 빈 OAuth 응답이 프로필을 지우면 안 됨)."""
+    existing = User(
+        id=1, google_id="g1", email="a@x.com", username="alice",
+        profile_image="http://img/old.png",
+    )
+    session = MagicMock()
+    session.exec.return_value = _exec_returns_first(existing)
+
+    result = services.get_or_create_user_by_google(
+        session, google_id="g1", email="a@x.com", username="alice",
+        profile_image=None,
+    )
+
+    assert result.profile_image == "http://img/old.png"
+
+
+def test_get_or_create_user_overwrites_profile_image_when_passed():
+    """profile_image 가 truthy 면 기존 값을 새 값으로 갱신."""
+    existing = User(
+        id=1, google_id="g1", email="a@x.com", username="alice",
+        profile_image="http://img/old.png",
+    )
+    session = MagicMock()
+    session.exec.return_value = _exec_returns_first(existing)
+
+    result = services.get_or_create_user_by_google(
+        session, google_id="g1", email="a@x.com", username="alice",
+        profile_image="http://img/new.png",
+    )
+
+    assert result.profile_image == "http://img/new.png"
+
+
+# ── _update_expertise_on_action ────────────────────────────────────────
+
+def _basic_user() -> User:
+    return User(id=1, google_id="g", email="a@x.com", username="u")
+
+
+def test_update_expertise_returns_silently_when_user_missing():
+    """session.get(User) → None 이면 분석 조회 결과와 무관하게 즉시 종료, add 안 함."""
+    session = MagicMock()
+    session.get.return_value = None
+    session.exec.return_value = _exec_returns_first(None)
+
+    services._update_expertise_on_action(session, user_id=1, article_id=10, action="bookmark")
+
+    session.add.assert_not_called()
+
+
+def test_update_expertise_returns_silently_when_analysis_missing():
+    """analysis 가 없으면 silent return — 외부에서 user expertise 가 변하지 않아야 한다."""
+    session = MagicMock()
+    session.get.return_value = _basic_user()
+    session.exec.return_value = _exec_returns_first(None)
+
+    services._update_expertise_on_action(session, user_id=1, article_id=10, action="bookmark")
+
+    session.add.assert_not_called()
+
+
+def test_update_expertise_returns_silently_when_domain_scores_empty():
+    """analysis.domain_scores 가 None/빈값이면 silent return."""
+    session = MagicMock()
+    session.get.return_value = _basic_user()
+    analysis = MagicMock()
+    analysis.domain_scores = None
+    session.exec.return_value = _exec_returns_first(analysis)
+
+    services._update_expertise_on_action(session, user_id=1, article_id=10, action="bookmark")
+
+    session.add.assert_not_called()
+
+
+def test_update_expertise_calls_update_user_expertise_and_session_add():
+    """정상 케이스: update_user_expertise(현 expertise, domain_scores, action) 호출 + user 갱신 후 add."""
+    user = _basic_user()
+    user.expertise = {"network_infra": 2}
+    analysis = MagicMock()
+    analysis.domain_scores = {"network_infra": 3}
+    session = MagicMock()
+    session.get.return_value = user
+    session.exec.return_value = _exec_returns_first(analysis)
+
+    new_expertise = {"network_infra": 2.5}
+    with patch.object(services, "update_user_expertise", return_value=new_expertise) as mock_upd:
+        services._update_expertise_on_action(session, user_id=1, article_id=10, action="bookmark")
+
+    mock_upd.assert_called_once_with({"network_infra": 2}, {"network_infra": 3}, "bookmark")
+    assert user.expertise == new_expertise
+    session.add.assert_called_once_with(user)
+    # commit 은 caller (create_bookmark 등) 책임이므로 여기서 호출되면 안 된다
+    session.commit.assert_not_called()
+
+
+# ── rate_article ────────────────────────────────────────
+
+def _full_user() -> User:
+    user = _basic_user()
+    user.expertise = {"network_infra": 2}
+    user.level_preference = 3.0
+    return user
+
+
+def _exec_side_effect_for_rate(rating_value, analysis_value):
+    """rate_article 은 session.exec 를 두 번 호출 (ArticleRating → Analysis)."""
+    return [_exec_returns_first(rating_value), _exec_returns_first(analysis_value)]
+
+
+def test_rate_article_creates_new_when_no_existing():
+    """기존 ArticleRating 이 없으면 새 객체 생성 후 add + commit."""
+    session = MagicMock()
+    session.exec.side_effect = _exec_side_effect_for_rate(None, None)
+    session.get.return_value = None  # user 없음 → 부가 효과 스킵
+
+    result = services.rate_article(session, user_id=1, article_id=10, rating=1)
+
+    assert isinstance(result, ArticleRating)
+    assert result.user_id == 1
+    assert result.article_id == 10
+    assert result.rating == 1
+    session.add.assert_called_once_with(result)
+    session.commit.assert_called_once()
+    session.refresh.assert_called_once_with(result)
+
+
+def test_rate_article_overwrites_existing_rating():
+    """기존 평가가 있으면 새 객체 생성 없이 rating 만 덮어쓴다 (회귀 방지)."""
+    existing = ArticleRating(id=5, user_id=1, article_id=10, rating=-1)
+    session = MagicMock()
+    session.exec.side_effect = _exec_side_effect_for_rate(existing, None)
+    session.get.return_value = None
+
+    result = services.rate_article(session, user_id=1, article_id=10, rating=1)
+
+    assert result is existing
+    assert result.rating == 1
+    session.add.assert_called_once_with(existing)
+    session.commit.assert_called_once()
+
+
+def test_rate_article_skips_user_updates_when_user_missing():
+    """user 없으면 Elo/expertise 헬퍼는 호출되지 않고 평가만 저장."""
+    analysis = MagicMock()
+    analysis.domain_scores = {"network_infra": 3}
+    session = MagicMock()
+    session.exec.side_effect = _exec_side_effect_for_rate(None, analysis)
+    session.get.return_value = None
+
+    with patch.object(services, "update_level_preference_elo") as elo, \
+         patch.object(services, "update_expertise_on_rating") as exp:
+        services.rate_article(session, user_id=1, article_id=10, rating=1)
+
+    elo.assert_not_called()
+    exp.assert_not_called()
+    session.commit.assert_called_once()
+
+
+def test_rate_article_skips_user_updates_when_analysis_missing():
+    """analysis 없으면 부가 업데이트 스킵."""
+    session = MagicMock()
+    session.exec.side_effect = _exec_side_effect_for_rate(None, None)
+    session.get.return_value = _full_user()
+
+    with patch.object(services, "update_level_preference_elo") as elo, \
+         patch.object(services, "update_expertise_on_rating") as exp:
+        services.rate_article(session, user_id=1, article_id=10, rating=1)
+
+    elo.assert_not_called()
+    exp.assert_not_called()
+
+
+def test_rate_article_skips_user_updates_when_domain_scores_empty():
+    """analysis.domain_scores 가 None 이면 부가 업데이트 스킵."""
+    analysis = MagicMock()
+    analysis.domain_scores = None
+    session = MagicMock()
+    session.exec.side_effect = _exec_side_effect_for_rate(None, analysis)
+    session.get.return_value = _full_user()
+
+    with patch.object(services, "update_level_preference_elo") as elo, \
+         patch.object(services, "update_expertise_on_rating") as exp:
+        services.rate_article(session, user_id=1, article_id=10, rating=1)
+
+    elo.assert_not_called()
+    exp.assert_not_called()
+
+
+def test_rate_article_liked_true_when_rating_is_1():
+    """rating=1 → liked=True 가 Elo + expertise 헬퍼에 전달."""
+    user = _full_user()
+    analysis = MagicMock()
+    analysis.domain_scores = {"network_infra": 3}
+    analysis.level = "Medium"
+    session = MagicMock()
+    session.exec.side_effect = _exec_side_effect_for_rate(None, analysis)
+    session.get.return_value = user
+
+    with patch.object(services, "update_level_preference_elo", return_value=3.2) as elo, \
+         patch.object(services, "calculate_relative_difficulty", return_value="Medium"), \
+         patch.object(services, "update_expertise_on_rating", return_value=user.expertise) as exp:
+        services.rate_article(session, user_id=1, article_id=10, rating=1)
+
+    elo.assert_called_once_with(3.0, "Medium", True)
+    assert exp.call_args.args[3] is True
+
+
+def test_rate_article_liked_false_when_rating_is_negative_1():
+    """rating=-1 → liked=False 가 Elo + expertise 헬퍼에 전달."""
+    user = _full_user()
+    analysis = MagicMock()
+    analysis.domain_scores = {"network_infra": 3}
+    analysis.level = "Medium"
+    session = MagicMock()
+    session.exec.side_effect = _exec_side_effect_for_rate(None, analysis)
+    session.get.return_value = user
+
+    with patch.object(services, "update_level_preference_elo", return_value=2.8) as elo, \
+         patch.object(services, "calculate_relative_difficulty", return_value="Easy"), \
+         patch.object(services, "update_expertise_on_rating", return_value=user.expertise) as exp:
+        services.rate_article(session, user_id=1, article_id=10, rating=-1)
+
+    elo.assert_called_once_with(3.0, "Medium", False)
+    assert exp.call_args.args[3] is False
+
+
+def test_rate_article_full_flow_updates_user_state():
+    """정상 케이스: level_preference + expertise 가 헬퍼 반환값으로 갱신되고 user 가 add."""
+    user = _full_user()
+    analysis = MagicMock()
+    analysis.domain_scores = {"network_infra": 3}
+    analysis.level = "Hard"
+    session = MagicMock()
+    session.exec.side_effect = _exec_side_effect_for_rate(None, analysis)
+    session.get.return_value = user
+
+    new_expertise = {"network_infra": 2.6}
+    with patch.object(services, "update_level_preference_elo", return_value=3.5), \
+         patch.object(services, "calculate_relative_difficulty", return_value="Medium") as rel, \
+         patch.object(services, "update_expertise_on_rating", return_value=new_expertise):
+        services.rate_article(session, user_id=1, article_id=10, rating=1)
+
+    assert user.level_preference == 3.5
+    assert user.expertise == new_expertise
+    # calculate_relative_difficulty 는 갱신된 level_preference(3.5) 를 받아야 한다
+    rel.assert_called_once_with("Hard", {"network_infra": 3}, {"network_infra": 2}, 3.5)
+    # add 호출: 신규 ArticleRating + user → 총 2번
+    assert session.add.call_count == 2
+    session.commit.assert_called_once()
