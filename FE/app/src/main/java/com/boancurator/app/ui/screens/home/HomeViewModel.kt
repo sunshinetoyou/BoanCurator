@@ -16,49 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-
-// === 보안 분야 매핑 (ArticleCard에서 참조) ===
-enum class SecurityField(val label: String) {
-    GENERAL("보안 일반"),
-    AI("AI 보안"),
-    INFRA("인프라 보안"),
-    DEV("개발 보안"),
-    POLICY("보안 정책"),
-    ETC("ETC")
-}
-
-fun getSecurityField(themes: List<String>?): SecurityField {
-    if (themes.isNullOrEmpty() || "Security" !in themes) return SecurityField.ETC
-    return when {
-        "AI/ML" in themes -> SecurityField.AI
-        "Infra/Cloud" in themes -> SecurityField.INFRA
-        "Development" in themes -> SecurityField.DEV
-        "Business/Policy" in themes -> SecurityField.POLICY
-        else -> SecurityField.GENERAL
-    }
-}
-
-// === Week/Day grouping ===
-data class DayGroup(
-    val date: LocalDate,
-    val articles: List<CardView>,
-    val collapsed: Boolean = true
-)
-
-data class WeekGroup(
-    val year: Int,
-    val month: Int,
-    val weekOfMonth: Int,
-    val label: String,
-    val dateRange: String,
-    val days: List<DayGroup>,
-    val collapsed: Boolean = true
-) {
-    val key: String get() = "${year}_${month}_${weekOfMonth}"
-    val totalCount: Int get() = days.sumOf { it.articles.size }
-}
 
 // === UI State ===
 data class HomeUiState(
@@ -413,45 +371,6 @@ class HomeViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(years = years)
             }
         }
-    }
-
-    private fun buildWeekGroups(articles: List<CardView>): List<WeekGroup> {
-        val dayFormatter = DateTimeFormatter.ofPattern("M/d")
-
-        return articles
-            .mapNotNull { article ->
-                val date = article.publishedAt?.take(10)?.let {
-                    try { LocalDate.parse(it) } catch (_: Exception) { null }
-                }
-                date?.let { it to article }
-            }
-            .groupBy { (date, _) -> date }
-            .map { (date, pairs) -> DayGroup(date = date, articles = pairs.map { it.second }) }
-            .sortedByDescending { it.date }
-            .groupBy { day ->
-                val date = day.date
-                Triple(date.year, date.monthValue, (date.dayOfMonth - 1) / 7 + 1)
-            }
-            .map { (key, days) ->
-                val (year, month, weekOfMonth) = key
-                val sortedDays = days.sortedByDescending { it.date }
-                val firstDate = sortedDays.last().date
-                val lastDate = sortedDays.first().date
-
-                WeekGroup(
-                    year = year,
-                    month = month,
-                    weekOfMonth = weekOfMonth,
-                    label = "${month}월 ${weekOfMonth}주차",
-                    dateRange = "${firstDate.format(dayFormatter)} ~ ${lastDate.format(dayFormatter)}",
-                    days = sortedDays
-                )
-            }
-            .sortedWith(
-                compareByDescending<WeekGroup> { it.year }
-                    .thenByDescending { it.month }
-                    .thenByDescending { it.weekOfMonth }
-            )
     }
 
     fun getFields() = SecurityField.entries.toList()
